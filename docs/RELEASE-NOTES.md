@@ -1,5 +1,73 @@
 # FaceOFFx Release Notes
 
+## 2.0.0 (2025-07-30)
+
+### Major Breaking Changes & Code Quality Improvements
+
+This major release improves code quality by adopting functional programming patterns
+throughout the codebase and corrects terminology to reflect PIV-compatible (not
+PIV-compliant) image processing.
+
+### Breaking Changes
+
+#### 1. Maybe<T> Pattern for Optional Values
+- `PivResult.Success()` method now accepts `Maybe<T>` parameters instead of nullable types
+- Calling code must use `Maybe<string>.From()` or `Maybe<T>.None` for optional parameters
+- Example migration:
+  ```csharp
+  // Old
+  var result = PivResult.Success(data, mime, dims, transform, face, summary: "text");
+  
+  // New
+  var result = PivResult.Success(data, mime, dims, transform, face, Maybe<string>.From("text"));
+  ```
+
+#### 2. Removal of Try-Catch Error Handling
+- All try-catch blocks replaced with Result<T> pattern
+- Methods that could previously throw exceptions now return Result<T>
+- Improved error propagation and handling throughout the library
+
+#### 3. Terminology Correction: PIV-Compatible
+- All references to "PIV-compliant" changed to "PIV-compatible"
+- This accurately reflects that the library produces images compatible with PIV standards
+- No functional changes, documentation and naming only
+
+### New Features
+
+#### Command Line Enhancements
+- Added `--preset` parameter for predefined quality settings
+- Added `--target-size` parameter for specific file size targets
+- Presets include: piv-high (30KB), piv-balanced (20KB), twic-max (14KB), piv-min (12KB)
+
+### Bug Fixes
+
+- Fixed misleading comment about transformation order (was "crop first, then rotate")
+- Improved error handling throughout the codebase
+- Better null safety with compile-time guarantees
+
+### Code Quality Improvements
+
+- Adopted CSharpFunctionalExtensions patterns consistently
+- Replaced exception-based error handling with Result<T>
+- Improved immutability and functional composition
+- Better separation of concerns with pure functions
+
+### Migration Guide
+
+To migrate from 1.0.x to 2.0.0:
+
+1. Update all calls to `PivResult.Success()` to use Maybe<T> for optional parameters
+2. Handle Result<T> return values instead of try-catch blocks
+3. Update any references from "PIV-compliant" to "PIV-compatible" in your code
+4. Review ProcessCommand usage if using the CLI programmatically
+
+### Dependencies
+
+- Updated package dependencies to latest stable versions
+- No new dependencies added
+
+---
+
 ## 1.0.1 (2025-07-30)
 
 ### Package Consolidation & Bug Fixes

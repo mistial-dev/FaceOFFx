@@ -156,7 +156,7 @@ public class ProcessCommandTests : IntegrationTestBase
             $"process \"{_testImagePath}\" --output \"{outputPath}\" --verbose"
         );
         exitCode.Should().Be(0);
-        output.Should().Contain("Processing with PIV processor");
+        output.Should().Contain("Processing with face processor");
         // The output should contain success message since we're using a real face image
         output.Should().Contain("completed successfully");
     }

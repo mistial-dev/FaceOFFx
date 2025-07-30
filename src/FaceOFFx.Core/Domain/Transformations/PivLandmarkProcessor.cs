@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
 using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
@@ -9,14 +10,14 @@ using SixLabors.ImageSharp.Processing;
 namespace FaceOFFx.Core.Domain.Transformations;
 
 /// <summary>
-/// Processor that creates PIV-compliant images with accurate facial landmarks.
+/// Processor that creates PIV-compatible images with accurate facial landmarks.
 /// Extracts landmarks from the original face region (what the model expects) then
 /// transforms both the image and landmarks to PIV format.
 /// </summary>
 public static class PivLandmarkProcessor
 {
     /// <summary>
-    /// Processes a face to produce both a PIV-compliant image and accurate landmarks.
+    /// Processes a face to produce both a PIV-compatible image and accurate landmarks.
     /// </summary>
     public static async Task<Result<PivLandmarkResult>> ProcessAsync(
         Image<Rgba32> sourceImage,
@@ -30,10 +31,8 @@ public static class PivLandmarkProcessor
             "Starting PIV landmark processing for face: {Face}",
             detectedFace.BoundingBox
         );
-        try
-        {
-            // Step 1: Extract landmarks from the original face region (what the model expects)
-            logger?.LogDebug("Step 1: Extracting landmarks from face region");
+        // Step 1: Extract landmarks from the original face region (what the model expects)
+        logger?.LogDebug("Step 1: Extracting landmarks from face region");
             var landmarksResult = await landmarkExtractor
                 .ExtractLandmarksAsync(sourceImage, detectedFace.BoundingBox)
                 .ConfigureAwait(false);
@@ -194,14 +193,6 @@ public static class PivLandmarkProcessor
                 result.ProcessingSummary
             );
             return Result.Success(result);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "PIV landmark processing failed with exception");
-            return Result.Failure<PivLandmarkResult>(
-                $"PIV landmark processing failed: {ex.Message}"
-            );
-        }
     }
 
     /// <summary>
@@ -316,13 +307,11 @@ public static class PivLandmarkProcessor
         ILogger? logger = null
     )
     {
-        try
-        {
-            logger?.LogDebug(
-                "Starting PIV-compliant face crop calculation with image dimensions: {Width}x{Height}",
-                imageWidth,
-                imageHeight
-            );
+        logger?.LogDebug(
+            "Starting PIV-compatible face crop calculation with image dimensions: {Width}x{Height}",
+            imageWidth,
+            imageHeight
+        );
 
             if (!landmarks.IsValid)
             {
@@ -449,17 +438,9 @@ public static class PivLandmarkProcessor
             }
 
             var cropRectangle = new Rectangle(cropX, cropY, finalCropWidth, finalCropHeight);
-            logger?.LogDebug("PIV-compliant crop region calculated: {Rectangle}", cropRectangle);
+            logger?.LogDebug("PIV-compatible crop region calculated: {Rectangle}", cropRectangle);
 
             return Result.Success(cropRectangle);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "PIV-compliant crop calculation failed");
-            return Result.Failure<Rectangle>(
-                $"PIV-compliant crop calculation failed: {ex.Message}"
-            );
-        }
     }
 
     // REMOVED: ApplyPivTransformations method is no longer needed
@@ -522,36 +503,26 @@ public static class PivLandmarkProcessor
         ILogger? logger = null
     )
     {
-        try
+        logger?.LogDebug("Calculating Appendix C.6 compliant ROI Inner Region");
+
+        // PIV image dimensions from constants
+        const int pivWidth = PivConstants.Width; // 420
+        const int pivHeight = PivConstants.Height; // 560
+
+        // Use the standardized Appendix C.6 method
+        var result = FacialRoiSet.CreateAppendixC6(pivWidth, pivHeight);
+
+        if (result.IsSuccess)
         {
-            logger?.LogDebug("Calculating Appendix C.6 compliant ROI Inner Region");
-
-            // PIV image dimensions from constants
-            const int pivWidth = PivConstants.Width; // 420
-            const int pivHeight = PivConstants.Height; // 560
-
-            // Use the standardized Appendix C.6 method
-            var result = FacialRoiSet.CreateAppendixC6(pivWidth, pivHeight);
-
-            if (result.IsSuccess)
-            {
-                logger?.LogDebug(
-                    "Appendix C.6 ROI calculation successful using standardized method"
-                );
-            }
-            else
-            {
-                logger?.LogWarning("Appendix C.6 ROI validation failed: {Error}", result.Error);
-            }
-            return result;
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Appendix C.6 ROI calculation failed");
-            return Result.Failure<FacialRoiSet>(
-                $"Appendix C.6 ROI calculation failed: {ex.Message}"
+            logger?.LogDebug(
+                "Appendix C.6 ROI calculation successful using standardized method"
             );
         }
+        else
+        {
+            logger?.LogWarning("Appendix C.6 ROI validation failed: {Error}", result.Error);
+        }
+        return result;
     }
 }
 

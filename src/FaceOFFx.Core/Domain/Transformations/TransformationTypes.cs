@@ -297,7 +297,7 @@ public sealed record CropSpecification
 }
 
 /// <summary>
-/// Represents a complete transformation plan for achieving PIV compliance.
+/// Represents a complete transformation plan for achieving PIV compatibility.
 /// This plan encapsulates all necessary corrections (rotation, scale, crop) along with
 /// the reasons for transformation and estimated quality impact.
 /// </summary>
@@ -706,7 +706,7 @@ public sealed record PivAspectRatio
     /// FIPS 201-3 standard aspect ratio for PIV facial images (420x560 pixels).
     /// </value>
     /// <remarks>
-    /// This is the required aspect ratio for all PIV-compliant facial images.
+    /// This is the required aspect ratio for all PIV-compatible facial images.
     /// The 3:4 ratio ensures proper facial coverage and framing as specified
     /// in government identity verification standards.
     /// </remarks>

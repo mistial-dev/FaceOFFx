@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Domain.Detection;
 using JetBrains.Annotations;
 
@@ -25,7 +26,7 @@ namespace FaceOFFx.Core.Domain.Transformations;
 public sealed record PivResult
 {
     /// <summary>
-    /// The PIV-compliant transformed image as encoded byte data.
+    /// The PIV-compatible transformed image as encoded byte data.
     /// </summary>
     /// <value>
     /// A byte array containing the processed facial photograph encoded in the specified format,
@@ -59,7 +60,7 @@ public sealed record PivResult
     public required ImageDimensions Dimensions { get; init; }
 
     /// <summary>
-    /// The transformation parameters that were applied to produce the PIV-compliant image.
+    /// The transformation parameters that were applied to produce the PIV-compatible image.
     /// </summary>
     /// <value>
     /// A <see cref="PivTransform"/> record containing rotation angle, crop region,
@@ -141,14 +142,14 @@ public sealed record PivResult
     /// <summary>
     /// Creates a successful PIV result with all required information.
     /// </summary>
-    /// <param name="imageData">The encoded PIV-compliant image data.</param>
+    /// <param name="imageData">The encoded PIV-compatible image data.</param>
     /// <param name="mimeType">MIME type of the output format (e.g., "image/jpeg").</param>
     /// <param name="dimensions">Dimensions of the output image.</param>
     /// <param name="appliedTransform">The transformation that was applied.</param>
     /// <param name="sourceFace">The original detected face used for transformation.</param>
-    /// <param name="summary">Optional processing summary. Auto-generated if null.</param>
-    /// <param name="warnings">Optional list of warnings. Empty list if null.</param>
-    /// <param name="metadata">Optional processing metadata. Empty dictionary if null.</param>
+    /// <param name="summary">Optional processing summary. Auto-generated if None.</param>
+    /// <param name="warnings">Optional list of warnings. Empty list if None.</param>
+    /// <param name="metadata">Optional processing metadata. Empty dictionary if None.</param>
     /// <returns>A new <see cref="PivResult"/> instance with the provided information.</returns>
     /// <example>
     /// <code>
@@ -170,9 +171,9 @@ public sealed record PivResult
         ImageDimensions dimensions,
         PivTransform appliedTransform,
         DetectedFace sourceFace,
-        string? summary = null,
-        IReadOnlyList<string>? warnings = null,
-        IReadOnlyDictionary<string, object>? metadata = null
+        Maybe<string> summary = default,
+        Maybe<IReadOnlyList<string>> warnings = default,
+        Maybe<IReadOnlyDictionary<string, object>> metadata = default
     )
     {
         return new PivResult
@@ -182,9 +183,9 @@ public sealed record PivResult
             Dimensions = dimensions,
             AppliedTransform = appliedTransform,
             SourceFace = sourceFace,
-            ProcessingSummary = summary ?? GenerateDefaultSummary(appliedTransform),
-            Warnings = warnings ?? Array.Empty<string>(),
-            Metadata = metadata ?? new Dictionary<string, object>(),
+            ProcessingSummary = summary.GetValueOrDefault(GenerateDefaultSummary(appliedTransform)),
+            Warnings = warnings.GetValueOrDefault(Array.Empty<string>()),
+            Metadata = metadata.GetValueOrDefault(new Dictionary<string, object>()),
         };
     }
 

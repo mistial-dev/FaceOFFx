@@ -1,7 +1,9 @@
 using System.ComponentModel;
+using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
 using FaceOFFx.Core.Domain.Standards;
 using FaceOFFx.Core.Domain.Transformations;
+using FaceOFFx.Infrastructure.Services;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -95,6 +97,22 @@ public sealed class ProcessCommand(
         [CommandOption("--debug")]
         [Description("Enable debug logging for troubleshooting")]
         public bool Debug { get; set; }
+
+        /// <summary>
+        /// Processing preset to use
+        /// </summary>
+        [CommandOption("--preset <PRESET>")]
+        [Description(
+            "Processing preset: piv-high (30KB), piv-balanced (20KB), twic-max (14KB), piv-min (12KB)"
+        )]
+        public string? Preset { get; set; }
+
+        /// <summary>
+        /// Target file size in bytes (overrides preset and rate)
+        /// </summary>
+        [CommandOption("--target-size <SIZE>")]
+        [Description("Target file size in bytes (overrides preset and rate)")]
+        public int? TargetSize { get; set; }
     }
 
     private readonly IFaceDetector _faceDetector =
@@ -125,53 +143,8 @@ public sealed class ProcessCommand(
             var outputPath = settings.OutputPath ?? GenerateOutputPath(settings.InputPath);
             _logger.LogDebug("Output path determined: {OutputPath}", outputPath);
 
-            // Parse ROI quality parameters
-            var (baseRate, startLevel) = PivConstants.RoiQuality.Default;
-
-            if (float.TryParse(settings.BaseRate, out var parsedRate) && parsedRate > 0)
-            {
-                baseRate = parsedRate;
-                _logger.LogDebug("Parsed custom base rate: {BaseRate}", baseRate);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "Failed to parse base rate '{BaseRate}', using default: {DefaultRate}",
-                    settings.BaseRate,
-                    baseRate
-                );
-            }
-
-            if (
-                int.TryParse(settings.RoiStartLevel, out var parsedLevel)
-                && parsedLevel >= 0
-                && parsedLevel <= 3
-            )
-            {
-                startLevel = parsedLevel;
-                _logger.LogDebug("Parsed custom ROI start level: {StartLevel}", startLevel);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "Failed to parse ROI start level '{RoiStartLevel}', using default: {DefaultLevel}",
-                    settings.RoiStartLevel,
-                    startLevel
-                );
-            }
-
-            // Parse tile size parameter
-
-            // Configure processing options
-            var options = new PivProcessingOptions
-            {
-                BaseRate = baseRate,
-                RoiStartLevel = startLevel,
-            };
-
-            // ROI enabled by default for 20KB level 3 quality
-            var enableRoi = !settings.NoRoi;
-            var roiAlign = settings.Align;
+            // Determine processing options based on parameters
+            var processingOptions = DetermineProcessingOptions(settings, _logger);
 
             // Process the image
             bool success = false;
@@ -180,50 +153,35 @@ public sealed class ProcessCommand(
             {
                 // In debug mode, don't use status spinner as it conflicts with logging
                 AnsiConsole.MarkupLine("[grey]Loading image...[/]");
-                using var sourceImage = await Image.LoadAsync<Rgba32>(settings.InputPath);
+
+                var imageData = await File.ReadAllBytesAsync(settings.InputPath);
 
                 if (settings.Verbose)
                 {
-                    AnsiConsole.MarkupLine(
-                        $"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]"
-                    );
+                    AnsiConsole.MarkupLine($"[blue]Source image: {imageData.Length} bytes[/]");
                 }
 
-                AnsiConsole.MarkupLine("[grey]Processing with PIV processor...[/]");
+                AnsiConsole.MarkupLine("[grey]Processing with face processor...[/]");
                 _logger.LogDebug(
-                    "Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
-                    enableRoi,
-                    roiAlign
+                    "Starting face processing with options: {Options}",
+                    processingOptions
                 );
 
-                var result = await PivProcessor.ProcessAsync(
-                    sourceImage,
-                    _faceDetector,
-                    _landmarkExtractor,
-                    _jpeg2000Encoder,
-                    options,
-                    enableRoi,
-                    roiAlign,
+                var result = await FaceProcessor.ProcessAsync(
+                    imageData,
+                    processingOptions,
                     _logger
                 );
 
                 if (result.IsSuccess)
                 {
-                    _logger.LogInformation("PIV processing completed successfully");
-                    await HandleSuccess(
-                        result.Value,
-                        outputPath,
-                        settings,
-                        baseRate,
-                        startLevel,
-                        enableRoi,
-                        _logger
-                    );
+                    _logger.LogInformation("Face processing completed successfully");
+                    await HandleSuccess(result.Value, outputPath, settings, _logger);
                     success = true;
                 }
                 else
                 {
-                    _logger.LogError("PIV processing failed: {Error}", result.Error);
+                    _logger.LogError("Face processing failed: {Error}", result.Error);
                     HandleFailure(result.Error, _logger);
                     success = false;
                 }
@@ -234,56 +192,40 @@ public sealed class ProcessCommand(
                 await AnsiConsole
                     .Status()
                     .StartAsync(
-                        "Processing image for PIV compliance...",
+                        "Processing image for face recognition...",
                         async ctx =>
                         {
                             ctx.Status("Loading image...");
-                            using var sourceImage = await Image.LoadAsync<Rgba32>(
-                                settings.InputPath
-                            );
+                            var imageData = await File.ReadAllBytesAsync(settings.InputPath);
 
                             if (settings.Verbose)
                             {
                                 AnsiConsole.MarkupLine(
-                                    $"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]"
+                                    $"[blue]Source image: {imageData.Length} bytes[/]"
                                 );
                             }
 
-                            ctx.Status("Processing with PIV processor...");
+                            ctx.Status("Processing with face processor...");
                             _logger.LogDebug(
-                                "Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
-                                enableRoi,
-                                roiAlign
+                                "Starting face processing with options: {Options}",
+                                processingOptions
                             );
 
-                            var result = await PivProcessor.ProcessAsync(
-                                sourceImage,
-                                _faceDetector,
-                                _landmarkExtractor,
-                                _jpeg2000Encoder,
-                                options,
-                                enableRoi,
-                                roiAlign,
+                            var result = await FaceProcessor.ProcessAsync(
+                                imageData,
+                                processingOptions,
                                 _logger
                             );
 
                             if (result.IsSuccess)
                             {
-                                _logger.LogInformation("PIV processing completed successfully");
-                                await HandleSuccess(
-                                    result.Value,
-                                    outputPath,
-                                    settings,
-                                    baseRate,
-                                    startLevel,
-                                    enableRoi,
-                                    _logger
-                                );
+                                _logger.LogInformation("Face processing completed successfully");
+                                await HandleSuccess(result.Value, outputPath, settings, _logger);
                                 success = true;
                             }
                             else
                             {
-                                _logger.LogError("PIV processing failed: {Error}", result.Error);
+                                _logger.LogError("Face processing failed: {Error}", result.Error);
                                 HandleFailure(result.Error, _logger);
                                 success = false;
                             }
@@ -302,94 +244,60 @@ public sealed class ProcessCommand(
     }
 
     /// <summary>
-    /// Handles encoding success
+    /// Handles processing success
     /// </summary>
-    /// <param name="result"></param>
-    /// <param name="outputPath"></param>
-    /// <param name="settings"></param>
-    /// <param name="baseRate"></param>
-    /// <param name="startLevel"></param>
-    /// <param name="enableRoi"></param>
-    /// <param name="logger"></param>
+    /// <param name="result">Processing result</param>
+    /// <param name="outputPath">Output file path</param>
+    /// <param name="settings">Command settings</param>
+    /// <param name="logger">Logger instance</param>
     private static async Task HandleSuccess(
-        PivResult result,
+        ProcessingResult result,
         string outputPath,
         Settings settings,
-        float baseRate,
-        int startLevel,
-        bool enableRoi,
         ILogger<ProcessCommand> logger
     )
     {
-        // Save the already-encoded JPEG 2000 image data directly
+        // Save the encoded JPEG 2000 image data
         await File.WriteAllBytesAsync(outputPath, result.ImageData);
 
-        if (settings.Verbose)
-        {
-            if (!enableRoi)
-            {
-                AnsiConsole.MarkupLine(
-                    $"[green]✓ JPEG 2000 encoded without ROI (uniform quality)[/]"
-                );
-            }
-            else
-            {
-                AnsiConsole.MarkupLine(
-                    $"[green]✓ JPEG 2000 encoded with ROI (single Inner Region)[/]"
-                );
-            }
-
-            AnsiConsole.MarkupLine($"[cyan]  Base rate: {baseRate:F1} bits/pixel[/]");
-            AnsiConsole.MarkupLine(
-                $"[cyan]  Single tile: {PivConstants.Width}x{PivConstants.Height} pixels[/]"
-            );
-            if (enableRoi)
-            {
-                var roiDesc = GetRoiLevelDescription(startLevel);
-                AnsiConsole.MarkupLine($"[cyan]  ROI level: {startLevel} ({roiDesc})[/]");
-            }
-        }
-
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine($"[green]✓ PIV processing completed successfully![/]");
+        AnsiConsole.MarkupLine($"[green]✓ Face processing completed successfully![/]");
         AnsiConsole.MarkupLine($"[green]Output saved to: {outputPath}[/]");
 
-        // Show simple results
-        var table = new Table()
-            .Border(TableBorder.Rounded)
-            .Title("[bold]PIV Processing Results[/]");
+        // Show processing results
+        var table = new Table().Border(TableBorder.Rounded).Title("[bold]Processing Results[/]");
 
         table.AddColumn("Property");
         table.AddColumn("Value");
 
-        table.AddRow("PIV Compliant", result.IsPivCompliant ? "[green]✓ Yes[/]" : "[red]✗ No[/]");
-        table.AddRow("Output Dimensions", $"{result.Dimensions.Width}x{result.Dimensions.Height}");
-        table.AddRow("Processing Summary", result.ProcessingSummary);
+        var metadata = result.Metadata;
+        table.AddRow(
+            "Output Dimensions",
+            $"{metadata.OutputDimensions.Width}x{metadata.OutputDimensions.Height}"
+        );
+        table.AddRow("File Size", $"{metadata.FileSize:N0} bytes");
+        table.AddRow("Face Confidence", $"{metadata.FaceConfidence:F2}");
+        table.AddRow("Processing Time", $"{metadata.ProcessingTime.TotalMilliseconds:F0}ms");
+
+        if (metadata.CompressionRate > 0)
+            table.AddRow("Compression Rate", $"{metadata.CompressionRate:F2} bpp");
+
+        if (metadata.TargetSize.HasValue)
+            table.AddRow("Target Size", $"{metadata.TargetSize.Value:N0} bytes");
 
         AnsiConsole.Write(table);
 
         // Show verbose details
-        if (settings.Verbose)
+        if (settings.Verbose && metadata.AdditionalData.Any())
         {
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[cyan]Transform Details:[/]");
-            var transform = result.AppliedTransform;
-
-            AnsiConsole.MarkupLine(
-                $"[cyan]  Crop Region: ({transform.CropRegion.Left:F3}, {transform.CropRegion.Top:F3}) "
-                    + $"{transform.CropRegion.Width:F3}x{transform.CropRegion.Height:F3}[/]"
-            );
-
-            if (result.Metadata.Any())
+            AnsiConsole.MarkupLine("[cyan]Additional Details:[/]");
+            foreach (var kvp in metadata.AdditionalData)
             {
-                AnsiConsole.MarkupLine("[cyan]Metadata:[/]");
-                foreach (var kvp in result.Metadata)
-                {
-                    var valueStr = kvp.Value?.ToString() ?? "null";
-                    AnsiConsole.MarkupLine(
-                        $"[cyan]  {kvp.Key}: {valueStr.Replace("[", "[[").Replace("]", "]]")}[/]"
-                    );
-                }
+                var valueStr = kvp.Value?.ToString() ?? "null";
+                AnsiConsole.MarkupLine(
+                    $"[cyan]  {kvp.Key}: {valueStr.Replace("[", "[[").Replace("]", "]]")}[/]"
+                );
             }
         }
     }
@@ -432,15 +340,115 @@ public sealed class ProcessCommand(
         return Path.Combine(directory, $"{nameWithoutExt}.jp2");
     }
 
-    private static string GetRoiLevelDescription(int level)
+    /// <summary>
+    /// Determines processing options based on command line settings
+    /// </summary>
+    private static ProcessingOptions DetermineProcessingOptions(
+        Settings settings,
+        ILogger<ProcessCommand> logger
+    )
     {
-        return level switch
+        // Check for preset first
+        if (!string.IsNullOrEmpty(settings.Preset))
         {
-            0 => "aggressive ROI priority",
-            1 => "balanced quality",
-            2 => "conservative ROI priority",
-            3 => "smoothest transitions",
-            _ => "custom",
+            var preset = GetPresetFromString(settings.Preset, logger);
+            if (preset != null)
+            {
+                logger.LogDebug("Using preset: {Preset}", settings.Preset);
+                return ApplyOverrides(preset, settings, logger);
+            }
+        }
+
+        // Check for target size
+        if (settings.TargetSize.HasValue)
+        {
+            logger.LogDebug("Using target size: {TargetSize} bytes", settings.TargetSize.Value);
+            var options = ProcessingOptions.PivBalanced with
+            {
+                Strategy = EncodingStrategy.TargetSize(settings.TargetSize.Value),
+            };
+            return ApplyOverrides(options, settings, logger);
+        }
+
+        // Use custom rate if specified
+        if (float.TryParse(settings.BaseRate, out var rate) && rate > 0)
+        {
+            logger.LogDebug("Using custom rate: {Rate} bpp", rate);
+            var options = ProcessingOptions.PivBalanced with
+            {
+                Strategy = EncodingStrategy.FixedRate(rate),
+            };
+            return ApplyOverrides(options, settings, logger);
+        }
+
+        // Default to PIV standard
+        logger.LogDebug("Using default PIV standard options");
+        return ApplyOverrides(ProcessingOptions.PivBalanced, settings, logger);
+    }
+
+    /// <summary>
+    /// Gets a processing preset from string name
+    /// </summary>
+    private static ProcessingOptions? GetPresetFromString(
+        string presetName,
+        ILogger<ProcessCommand> logger
+    )
+    {
+        return presetName.ToLowerInvariant() switch
+        {
+            "twic-max" => ProcessingOptions.TwicMax,
+            "piv-min" => ProcessingOptions.PivMin,
+            "piv-balanced" => ProcessingOptions.PivBalanced,
+            "piv-high" => ProcessingOptions.PivHigh,
+            "archival" => ProcessingOptions.Archival,
+            "fast" => ProcessingOptions.Fast,
+            _ => null,
         };
+    }
+
+    /// <summary>
+    /// Applies CLI setting overrides to processing options
+    /// </summary>
+    private static ProcessingOptions ApplyOverrides(
+        ProcessingOptions baseOptions,
+        Settings settings,
+        ILogger<ProcessCommand> logger
+    )
+    {
+        var options = baseOptions;
+
+        // Apply ROI level override
+        if (
+            int.TryParse(settings.RoiStartLevel, out var roiLevel)
+            && roiLevel >= 0
+            && roiLevel <= 3
+        )
+        {
+            if (roiLevel != baseOptions.RoiStartLevel)
+            {
+                logger.LogDebug(
+                    "Overriding ROI level: {OldLevel} → {NewLevel}",
+                    baseOptions.RoiStartLevel,
+                    roiLevel
+                );
+                options = options with { RoiStartLevel = roiLevel };
+            }
+        }
+
+        // Apply ROI enable/disable override
+        if (settings.NoRoi && baseOptions.EnableRoi)
+        {
+            logger.LogDebug("Disabling ROI encoding");
+            options = options with { EnableRoi = false };
+        }
+
+        // Apply ROI alignment override
+        if (settings.Align && !baseOptions.AlignRoi)
+        {
+            logger.LogDebug("Enabling ROI alignment");
+            options = options with { AlignRoi = true };
+        }
+
+        return options;
     }
 }

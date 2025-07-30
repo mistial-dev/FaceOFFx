@@ -1,8 +1,8 @@
-# FaceOFFx – PIV-Compliant Facial Processing for .NET
+# FaceOFFx – PIV-Compatible Facial Processing for .NET
 
 ![FaceOFFx ROI Visualization](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg)
 
-*"I want to take his face... off."*  
+*"I want to take his face... off."*
 — Castor Troy, *Face/Off* (1997)
 
 [Quick Start](#quick-start) • [Installation](#installation) • [Samples](#sample-gallery) • [API](#api-reference) • [CLI](#cli-usage) • [Configuration](#configuration)
@@ -13,14 +13,14 @@
 
 FaceOFFx is a specialized, high-performance facial processing library for .NET, focused on **PIV (Personal Identity
 Verification)**
-compliance for issuing credentials that follow government standards (FIPS 201). Derived from the excellent *
+compatibility for issuing credentials that follow government standards (FIPS 201). Derived from the excellent *
 *[FaceONNX](https://github.com/FaceONNX/FaceONNX)** library,
-FaceOFFx extends its capabilities with PIV-specific transformations, FIPS 201-3 compliance features, and advanced JPEG
+FaceOFFx extends its capabilities with PIV-specific transformations, FIPS 201-3 compatibility features, and advanced JPEG
 2000 ROI encoding.
 
 ### Key Features
 
-- **PIV/TWIC Compliance** - FIPS 201-3 compliant 420×560 output
+- **PIV/TWIC Compatibility** - FIPS 201-3 compatible 420×560 output
 - **JPEG 2000 ROI Encoding** - Smart compression with facial region priority
 - **68-Point Landmark Detection** - Precise facial feature mapping
 - **High Performance** - Direct ONNX Runtime integration
@@ -29,37 +29,57 @@ FaceOFFx extends its capabilities with PIV-specific transformations, FIPS 201-3 
 
 ## Quick Start
 
-### Simple API - One Line Conversion
+### v2.0 Simplified Byte Array API
+
+The new v2.0 API provides automatic service management and byte array processing:
 
 ```csharp
 using FaceOFFx.Core.Domain.Transformations;
-using FaceOFFx.Infrastructure.Services;
 
-// Initialize services (typically done via DI)
-var faceDetector = new RetinaFaceDetector(modelPath);
-var landmarkExtractor = new OnnxLandmarkExtractor(modelPath);
-var jpeg2000Encoder = new Jpeg2000EncoderService();
-
-// Convert JPEG to PIV-compliant JP2 with smart defaults
-var result = await PivProcessor.ConvertJpegToPivJp2Async(
-    "input.jpg",
-    "output.jp2", 
-    faceDetector,
-    landmarkExtractor,
-    jpeg2000Encoder);
+// Simplest: Default PIV processing (20KB target)
+byte[] imageData = File.ReadAllBytes("photo.jpg");
+var result = await FaceProcessor.ProcessAsync(imageData);
 
 if (result.IsSuccess)
 {
-    Console.WriteLine($"Success! File size: {result.Value.ImageData.Length:N0} bytes");
+    File.WriteAllBytes("output.jp2", result.Value.ImageData);
+    Console.WriteLine($"Size: {result.Value.Metadata.FileSize:N0} bytes");
 }
+
+// TWIC processing (14KB maximum for card compatibility)
+var twicResult = await FaceProcessor.ProcessForTwicAsync(imageData);
+
+// Custom target size
+var customResult = await FaceProcessor.ProcessToSizeAsync(imageData, 25000);
+
+// Fixed compression rate
+var rateResult = await FaceProcessor.ProcessWithRateAsync(imageData, 1.5f);
 ```
 
-### Default Configuration
+#### Available Presets
 
-- **Output**: 420×560 pixels (PIV standard)
-- **Format**: JPEG 2000 with ROI
-- **File Size**: ~20KB
-- **Quality**: Optimized for facial features
+| Preset                          | Target Size | Use Case                   |
+|---------------------------------|-------------|----------------------------|
+| `ProcessingOptions.TwicMax`     | 14KB        | TWIC cards maximum size    |
+| `ProcessingOptions.PivMin`      | 12KB        | PIV minimum size           |
+| `ProcessingOptions.PivStandard` | 20KB        | Standard PIV compatibility |
+| `ProcessingOptions.PivHigh`     | 30KB        | Enhanced PIV quality       |
+| `ProcessingOptions.Archival`    | 4.0 bpp     | Long-term preservation     |
+| `ProcessingOptions.Fast`        | 0.5 bpp     | Quick processing           |
+
+#### JPEG 2000 Compression Guidelines
+
+For 420×560 images:
+
+| Rate (bpp) | Approx. Size | Quality Level |
+|------------|--------------|---------------|
+| 0.40       | 12KB         | PIV minimum   |
+| 0.48       | 14KB         | TWIC maximum  |
+| 0.70       | 20KB         | PIV standard  |
+| 1.00       | 29KB         | Enhanced      |
+| 1.50       | 45KB         | High quality  |
+| 2.00       | 60KB         | Premium       |
+| 4.00       | 118KB        | Archival      |
 
 ## Installation
 
@@ -91,16 +111,14 @@ Install-Package FaceOFFx
 
 ## Sample Gallery
 
-See the power of FaceOFFx with these real-world examples. All images are processed with default settings (20KB, ROI
-Level 3).
+See the power of FaceOFFx with these real-world examples demonstrating our four quality presets. Additional samples for all images and presets are available in the `docs/samples/` directory.
 
-| Original                                                                                                                          | PIV Processed                                                                                                                       | ROI Visualization                                                                                                           |
-|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_300w.jpg) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg) |
-| ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_300w.jpg)               | ![Bush Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_300w.jpg)               | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi_300w.jpg)               |
-| ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_300w.jpg)             | ![Trump Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_300w.jpg)             | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi_300w.jpg)             |
-| ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_300w.jpg)         | ![Johnson Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_300w.jpg)         | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi_300w.jpg)         |
-| ![Starmer Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/starmer_300w.jpg)         | ![Starmer Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_300w.jpg)         | ![Starmer ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/starmer_roi_300w.jpg)         |
+| Quality Preset | Original | PIV Processed | ROI Visualization |
+|----------------|----------|---------------|-------------------|
+| **PIV High** (29.4KB) | ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy PIV High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_piv_high.jp2) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi.jpg) |
+| **PIV Balanced** (17.7KB) | ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_300w.jpg) | ![Bush PIV Balanced](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_piv_balanced.jp2) | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi.jpg) |
+| **PIV Minimum** (11.8KB) | ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_300w.jpg) | ![Trump PIV Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_piv_min.jp2) | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi.jpg) |
+| **Minimum** (8.8KB) | ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_300w.jpg) | ![Johnson Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_minimum.jp2) | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi.jpg) |
 
 ### Processing Results
 
@@ -121,7 +139,7 @@ Level 3).
 
 ### Head Width Measurement (Line CC)
 
-The head width measurement is crucial for PIV compliance but presents challenges with 68-point facial landmarks:
+The head width measurement is crucial for PIV compatibility but presents challenges with 68-point facial landmarks:
 
 **What we measure**: The widest points of the face contour (landmarks 0-16), which represent the jawline from ear to
 ear. We then create a level line at the average Y-position of these widest points.
@@ -138,7 +156,7 @@ ear. We then create a level line at the average Y-position of these widest point
 - True head width at the temples/ears may be wider
 - This is a fundamental limitation of the 68-point model
 
-**PIV Compliance**: The key requirement is that Line CC width ≥ 240 pixels. The exact vertical position is less critical
+**PIV Compatibility**: The key requirement is that Line CC width ≥ 240 pixels. The exact vertical position is less critical
 than ensuring the face is large enough in the frame.
 
 ## API Reference
@@ -178,7 +196,7 @@ var options = new PivProcessingOptions
 var result = await PivProcessor.ProcessAsync(
     sourceImage,
     faceDetector,
-    landmarkExtractor, 
+    landmarkExtractor,
     jpeg2000Encoder,
     options,
     logger);  // ROI enabled by default, no alignment by default
@@ -187,11 +205,11 @@ var result = await PivProcessor.ProcessAsync(
 if (result.IsSuccess)
 {
     var pivResult = result.Value;
-    
+
     // Transformation details
     Console.WriteLine($"Rotation: {pivResult.AppliedTransform.RotationDegrees}°");
     Console.WriteLine($"Scale: {pivResult.AppliedTransform.ScaleFactor}x");
-    
+
     // Compliance validation
     var validation = pivResult.Metadata["ComplianceValidation"] as PivComplianceValidation;
     Console.WriteLine($"Head width: {validation?.HeadWidthPixels}px");
@@ -226,12 +244,12 @@ var fastOptions = PivProcessingOptions.Fast;
 
 ### File Size Tuning
 
-| Target Size | Base Rate | Use Case                                  |
-|-------------|-----------|-------------------------------------------|
-| ~17KB       | 0.6       | Maximum compression, basic ID cards       |
-| ~20KB       | 0.7       | **Default**, optimal quality/size balance |
-| ~24KB       | 0.8       | Enhanced quality for high-res printing    |
-| ~30KB       | 1.0       | Premium quality for archival              |
+| Preset | Target Size | Actual Size | Compression Rate | Use Case |
+|--------|-------------|-------------|------------------|----------|
+| PIV High | 30KB | ~29.4KB | 0.96 bpp | Premium quality for archival and forensic applications |
+| PIV Balanced | 20KB | ~17.7KB | 0.55 bpp | **Default** - Optimal quality/size balance for ID cards |
+| PIV Minimum | 12KB | ~11.8KB | 0.36 bpp | Minimum acceptable quality, works for both PIV and TWIC (14KB max) |
+| Minimum | - | ~8.9KB | 0.35 bpp | Smallest possible file size |
 
 ## CLI Usage
 
@@ -314,9 +332,9 @@ FaceOFFx/
 
 ## Technical Details
 
-### PIV Compliance (FIPS 201-3)
+### PIV Compatibility (FIPS 201-3)
 
-FaceOFFx ensures compliance with government standards:
+FaceOFFx ensures compatibility with government standards:
 
 - **Output**: 420×560 pixels (3:4 aspect ratio)
 - **Face Width**: Minimum 240 pixels
@@ -332,21 +350,229 @@ The library uses advanced ROI (Region of Interest) encoding to optimize quality:
 - **Background** - Lower quality for non-facial areas
 - **Smooth Transitions** - Level 3 default prevents harsh boundaries
 
-### ONNX Models
+## Neural Network Models
+
+FaceOFFx uses two specialized ONNX models for facial processing, each optimized for specific tasks in the PIV compatibility pipeline.
+
+### Face Detection Model (RetinaFace)
+
+**File**: `FaceDetector.onnx` (104MB, stored with Git LFS)
+**Architecture**: RetinaFace single-stage face detector
+**Input**: 640×640×3 RGB image, normalized to [0,1]
+**Output**: Face bounding boxes with confidence scores and 5 key facial points
+
+The RetinaFace model performs initial face detection and provides coarse facial landmarks:
+
+- **Bounding boxes**: Precise face region coordinates
+- **Confidence scores**: Detection confidence (typically >0.8 for processing)
+- **5-point landmarks**: Eyes (2), nose tip (1), mouth corners (2)
+- **Frontal face filtering**: Optimized for government ID photo orientations
+
+**Pre-processing**: Images are resized to 640×640 with letterboxing to maintain aspect ratio, then normalized to floating-point values between 0 and 1.
+
+**Post-processing**: Non-maximum suppression filters overlapping detections, retaining only the highest confidence frontal face for PIV processing.
+
+### Landmark Detection Model (PFLD)
+
+**File**: `landmarks_68_pfld.onnx` (2.8MB)
+**Architecture**: PFLD (Practical Facial Landmark Detector)
+**Input**: 112×112×3 RGB face crop, normalized to [0,1]
+**Output**: 136 floats (68 landmarks × 2 coordinates)
+
+The PFLD model extracts precise 68-point facial landmarks using the standard iBUG annotation scheme:
+
+#### Landmark Layout
+
+- **Face outline** (0-16): Jawline from ear to ear
+- **Right eyebrow** (17-21): Outer to inner points
+- **Left eyebrow** (22-26): Inner to outer points
+- **Nose bridge** (27-30): Top to bottom
+- **Lower nose** (31-35): Nostrils and tip
+- **Right eye** (36-41): Clockwise from outer corner
+- **Left eye** (42-47): Clockwise from outer corner
+- **Outer mouth** (48-59): Clockwise from left corner
+- **Inner mouth** (60-67): Clockwise from left corner
+
+**Coordinate System**: All landmarks are normalized to [0,1] relative to the 112×112 input crop and must be transformed back to full image coordinates for PIV processing.
+
+**Precision**: The PFLD model achieves sub-pixel accuracy for facial feature localization, essential for precise PIV alignment and ROI calculation.
+
+### Model Performance Characteristics
+
+| Model      | Inference Time* | Memory Usage | Accuracy            |
+|------------|-----------------|--------------|---------------------|
+| RetinaFace | ~50ms           | ~200MB       | >95% face detection |
+| PFLD       | ~15ms           | ~50MB        | <2px landmark error |
+
+*CPU inference on modern Intel/AMD processors
+
+### ONNX Models Table
 
 | Model                    | Purpose            | Input Size | Framework  |
 |--------------------------|--------------------|------------|------------|
 | `FaceDetector.onnx`      | Face detection     | 640×640    | RetinaFace |
 | `landmarks_68_pfld.onnx` | Landmark detection | 112×112    | PFLD       |
 
+## Image Processing Pipeline
+
+FaceOFFx follows a carefully orchestrated pipeline to transform input images into PIV-compatible JPEG 2000 files:
+
+### 1. Image Loading and Validation
+
+```
+Input Image (any format) → ImageSharp Image<Rgba32>
+```
+
+- Supports JPEG, PNG, BMP, TIFF, and other common formats
+- Converts to consistent RGBA32 format for processing
+- Validates image dimensions and format compatibility
+
+### 2. Face Detection Phase
+
+```
+Image<Rgba32> → RetinaFace Model → DetectedFace[]
+```
+
+- Resize image to 640×640 with letterboxing
+- Normalize pixel values to [0,1] range
+- Run ONNX inference to detect faces
+- Filter for frontal faces with confidence >0.8
+- Select single best face for PIV processing
+
+### 3. Face Crop Extraction
+
+```
+DetectedFace → Face Region Crop (Variable Size)
+```
+
+- Extract face region with padding based on detection box
+- Maintain original image resolution for landmark precision
+- Preserve aspect ratio of detected face region
+
+### 4. Landmark Detection Phase
+
+```
+Face Crop → Resize to 112×112 → PFLD Model → 68 Landmarks
+```
+
+- Resize face crop to exactly 112×112 pixels
+- Normalize to [0,1] for ONNX inference
+- Extract 68-point facial landmarks
+- Transform coordinates back to full image space
+
+### 5. PIV Transformation Calculation
+
+```
+68 Landmarks → Geometric Analysis → PivTransform
+```
+
+- **Eye angle calculation**: Compute rotation needed to level eyes horizontally
+- **Face centering**: Calculate optimal crop region for PIV compatibility
+- **Scale factor**: Determine resize ratio for 420×560 output
+- **Validation**: Ensure rotation is within ±5° PIV limits
+
+### 6. Image Transformation Sequence
+
+```
+Original Image → Rotate → Crop → Resize → PIV Image (420×560)
+```
+
+**Critical Order**: Rotation is applied to the full original image first to avoid black borders, then cropping and resizing follow.
+
+#### Rotation Phase
+
+- Rotate entire source image by calculated angle
+- Use high-quality bicubic interpolation
+- Maintain full image dimensions during rotation
+
+#### Cropping Phase
+
+- Calculate face position in rotated image
+- Apply PIV-compatible crop with proper margins
+- Ensure face occupies 57% of final image width
+
+#### Resizing Phase
+
+- Scale cropped region to exactly 420×560 pixels
+- Use bicubic resampling for optimal quality
+- Maintain aspect ratio through padding if needed
+
+### 7. Landmark Transformation
+
+```
+Original Landmarks → Transform Matrix → PIV Space Landmarks
+```
+
+- Apply same rotation, crop, and scale transforms to landmarks
+- Ensure landmarks align with transformed face position
+- Validate eye positions are within PIV compatibility zones
+
+### 8. ROI Region Calculation
+
+```
+PIV Landmarks → Facial Region Analysis → ROI Bounds
+```
+
+- Calculate inner facial region encompassing key features
+- Include eyes, eyebrows, nose, mouth, and surrounding area
+- Apply 1% padding around detected facial features
+- Generate rectangular ROI bounds for JPEG 2000 encoding
+
+### 9. JPEG 2000 Encoding with ROI
+
+```
+PIV Image + ROI → CoreJ2K → PIV-Compatible JP2 File
+```
+
+- **Single tile encoding**: Use one 420×560 tile for optimal compression
+- **ROI priority**: Encode facial region at higher quality (levels 0-3)
+- **Background compression**: Apply base compression rate to non-ROI areas
+- **Target file size**: Typically ~20KB with default 0.7 bpp rate
+
+### Processing Flow Diagram
+
+```
+Input Image
+    ↓
+Face Detection (RetinaFace 640×640)
+    ↓
+Face Crop Extraction
+    ↓
+Landmark Detection (PFLD 112×112)
+    ↓
+Geometric Analysis (Eye angle, face bounds)
+    ↓
+Image Transformation (Rotate → Crop → Resize)
+    ↓
+Landmark Transformation (Match image transforms)
+    ↓
+ROI Calculation (Facial region bounds)
+    ↓
+JPEG 2000 Encoding (Single tile + ROI)
+    ↓
+PIV-Compatible JP2 Output (420×560, ~20KB)
+```
+
+### Coordinate System Transformations
+
+The pipeline involves multiple coordinate space transformations:
+
+1. **Original Image Space**: Source image dimensions (e.g., 1920×1080)
+2. **Detection Space**: 640×640 normalized coordinates
+3. **Landmark Space**: 112×112 normalized coordinates [0,1]
+4. **Rotated Image Space**: Original dimensions after rotation
+5. **PIV Space**: Final 420×560 dimensions
+
+Each transformation maintains mathematical precision to ensure accurate facial feature alignment throughout the process.
+
 ## Requirements
 
 - **.NET 8.0** or later
 - **Dependencies**:
-    - Microsoft.ML.OnnxRuntime (CPU inference)
-    - SixLabors.ImageSharp (Image processing)
-    - CoreJ2K (JPEG 2000 encoding)
-    - CSharpFunctionalExtensions (Error handling)
+  - Microsoft.ML.OnnxRuntime (CPU inference)
+  - SixLabors.ImageSharp (Image processing)
+  - CoreJ2K (JPEG 2000 encoding)
+  - CSharpFunctionalExtensions (Error handling)
 
 ## Contributing
 
@@ -401,7 +627,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   and model infrastructure
 - The **68-point facial landmark** annotation scheme was originally developed by the iBUG group at Imperial College
   London
-- **PIV Standards Community** for comprehensive compliance guidance
 
 ### Quote
 

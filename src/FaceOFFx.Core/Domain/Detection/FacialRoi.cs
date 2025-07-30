@@ -121,7 +121,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
 /// </summary>
 /// <param name="InnerRegion">The Inner Region as defined by Appendix C.6 - rectangular area for high-quality encoding.</param>
 /// <remarks>
-/// Implements the Appendix C.6 specification for PIV-compliant facial image compression:
+/// Implements the Appendix C.6 specification for PIV-compatible facial image compression:
 /// - Inner Region: Rectangular area at (0.1×W-1, 0.1×W-1) to (0.9×W-1, 1.1×W-1)
 /// - Outer Region: Everything outside Inner Region gets lower quality (handled by encoder)
 /// This approach provides consistent, standards-compliant ROI behavior.

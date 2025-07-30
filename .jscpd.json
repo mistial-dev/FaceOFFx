@@ -1,5 +1,5 @@
 {
-  "threshold": 0,
+  "threshold": 3,
   "reporters": ["html", "markdown"],
   "ignore": [
     "**/node_modules/**",
@@ -10,6 +10,11 @@
     "**/.github/**",
     "**/.idea/**",
     "**/report/**",
-    "**/*.svg"
-  ]
+    "**/*.svg",
+    "**/bin/**",
+    "**/obj/**",
+    "**/artifacts/**"
+  ],
+  "minLines": 10,
+  "minTokens": 50
 }

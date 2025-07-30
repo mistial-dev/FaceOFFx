@@ -3,25 +3,25 @@ using JetBrains.Annotations;
 namespace FaceOFFx.Core.Domain.Standards;
 
 /// <summary>
-/// PIV standard constants and specifications for FIPS 201-3 compliant image processing.
+/// PIV standard constants and specifications for FIPS 201-3 compatible image processing.
 /// </summary>
 [PublicAPI]
 public static class PivConstants
 {
     /// <summary>
     /// Width of the PIV image in pixels as specified by FIPS 201-3.
-    /// Standard width for all PIV-compliant facial images.
+    /// Standard width for all PIV-compatible facial images.
     /// </summary>
     public const int Width = 420;
 
     /// <summary>
     /// Height of the PIV image in pixels as specified by FIPS 201-3.
-    /// Standard height for all PIV-compliant facial images.
+    /// Standard height for all PIV-compatible facial images.
     /// </summary>
     public const int Height = 560;
 
     /// <summary>
-    /// Default JPEG 2000 ROI quality parameters for PIV-compliant image encoding.
+    /// Default JPEG 2000 ROI quality parameters for PIV-compatible image encoding.
     /// Controls compression rates and ROI priority levels for facial region preservation.
     /// </summary>
     [PublicAPI]

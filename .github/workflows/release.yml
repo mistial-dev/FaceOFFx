@@ -111,7 +111,7 @@ jobs:
           ~/.dotnet/tools/sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv "${GITHUB_REF#refs/tags/v}" -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
         with:
           files: |
             ./artifacts/*.nupkg

@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
 using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
@@ -35,7 +36,7 @@ namespace FaceOFFx.Core.Domain.Transformations;
 public static class PivProcessor
 {
     /// <summary>
-    /// Asynchronously processes a source image to produce a PIV-compliant facial photograph.
+    /// Asynchronously processes a source image to produce a PIV-compatible facial photograph.
     /// </summary>
     /// <param name="sourceImage">The source image containing a face to process. Must contain at least one detectable frontal face.</param>
     /// <param name="faceDetector">Face detection service for identifying faces in the image.</param>
@@ -47,7 +48,7 @@ public static class PivProcessor
     /// <param name="logger">Optional logger for detailed processing information and debugging.</param>
     /// <returns>
     /// A <see cref="Result{PivResult}"/> containing either:
-    /// - Success: A PIV-compliant 420x560 image with proper face positioning
+    /// - Success: A PIV-compatible 420x560 image with proper face positioning
     /// - Failure: Error message describing what went wrong (no face detected, landmarks extraction failed, etc.)
     /// </returns>
     /// <remarks>
@@ -78,7 +79,7 @@ public static class PivProcessor
     /// if (result.IsSuccess)
     /// {
     ///     var pivImage = result.Value.Image;
-    ///     // Save or use the PIV-compliant image
+    ///     // Save or use the PIV-compatible image
     /// }
     /// </code>
     /// </example>
@@ -101,48 +102,46 @@ public static class PivProcessor
             roiAlign
         );
 
-        try
+        var sourceDimensions = new ImageDimensions(sourceImage.Width, sourceImage.Height);
+        logger?.LogDebug(
+            "Source image dimensions: {Width}x{Height}",
+            sourceDimensions.Width,
+            sourceDimensions.Height
+        );
+
+        // Step 1: Detect faces using the simple approach
+        logger?.LogDebug("Step 1: Starting face detection");
+        var detectedFaces = await DetectFacesSimple(sourceImage, faceDetector, options, logger);
+        if (detectedFaces.IsFailure)
         {
-            var sourceDimensions = new ImageDimensions(sourceImage.Width, sourceImage.Height);
-            logger?.LogDebug(
-                "Source image dimensions: {Width}x{Height}",
-                sourceDimensions.Width,
-                sourceDimensions.Height
-            );
+            logger?.LogWarning("Face detection failed: {Error}", detectedFaces.Error);
+            return Result.Failure<PivResult>(detectedFaces.Error);
+        }
 
-            // Step 1: Detect faces using the simple approach
-            logger?.LogDebug("Step 1: Starting face detection");
-            var detectedFaces = await DetectFacesSimple(sourceImage, faceDetector, options, logger);
-            if (detectedFaces.IsFailure)
-            {
-                logger?.LogWarning("Face detection failed: {Error}", detectedFaces.Error);
-                return Result.Failure<PivResult>(detectedFaces.Error);
-            }
+        var face = detectedFaces.Value;
+        logger?.LogDebug(
+            "Face detected with confidence: {Confidence}, bounding box: {Box}",
+            face.Confidence,
+            face.BoundingBox
+        );
 
-            var face = detectedFaces.Value;
-            logger?.LogDebug(
-                "Face detected with confidence: {Confidence}, bounding box: {Box}",
-                face.Confidence,
-                face.BoundingBox
+        // Step 2: Use unified PIV landmark processor for accurate results
+        logger?.LogDebug("Step 2: Starting PIV landmark processing");
+        var pivLandmarkResult = await PivLandmarkProcessor.ProcessAsync(
+            sourceImage,
+            face,
+            landmarkExtractor,
+            options,
+            logger
+        );
+        if (pivLandmarkResult.IsFailure)
+        {
+            logger?.LogWarning(
+                "PIV landmark processing failed: {Error}",
+                pivLandmarkResult.Error
             );
-
-            // Step 2: Use unified PIV landmark processor for accurate results
-            logger?.LogDebug("Step 2: Starting PIV landmark processing");
-            var pivLandmarkResult = await PivLandmarkProcessor.ProcessAsync(
-                sourceImage,
-                face,
-                landmarkExtractor,
-                options,
-                logger
-            );
-            if (pivLandmarkResult.IsFailure)
-            {
-                logger?.LogWarning(
-                    "PIV landmark processing failed: {Error}",
-                    pivLandmarkResult.Error
-                );
-                return Result.Failure<PivResult>(pivLandmarkResult.Error);
-            }
+            return Result.Failure<PivResult>(pivLandmarkResult.Error);
+        }
 
             var pivData = pivLandmarkResult.Value;
             logger?.LogDebug(
@@ -220,8 +219,9 @@ public static class PivProcessor
                 pivData.Dimensions,
                 pivTransform,
                 face,
-                pivData.ProcessingSummary,
-                metadata: metadata
+                Maybe<string>.From(pivData.ProcessingSummary),
+                Maybe<IReadOnlyList<string>>.None,
+                Maybe<IReadOnlyDictionary<string, object>>.From(metadata)
             );
 
             var validationResult = result.Validate().Map(() => result);
@@ -237,12 +237,6 @@ public static class PivProcessor
                 logger?.LogWarning("PIV result validation failed: {Error}", validationResult.Error);
             }
             return validationResult;
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "PIV processing failed with exception");
-            return Result.Failure<PivResult>($"PIV processing failed: {ex.Message}");
-        }
     }
 
     /// <summary>
@@ -298,7 +292,7 @@ public static class PivProcessor
     }
 
     /// <summary>
-    /// Calculates the transformation parameters needed to produce a PIV-compliant image from facial landmarks.
+    /// Calculates the transformation parameters needed to produce a PIV-compatible image from facial landmarks.
     /// </summary>
     /// <param name="landmarks">68-point facial landmarks used to determine eye positions and face orientation.</param>
     /// <param name="face">Detected face information including bounding box.</param>
@@ -404,7 +398,7 @@ public static class PivProcessor
     /// <param name="logger">Optional logger for detailed transformation application information.</param>
     /// <returns>
     /// A <see cref="Result{Image}"/> containing either:
-    /// - Success: Transformed 420x560 PIV-compliant image
+    /// - Success: Transformed 420x560 PIV-compatible image
     /// - Failure: Error message if transformation fails
     /// </returns>
     /// <remarks>
@@ -427,12 +421,10 @@ public static class PivProcessor
     )
     {
         logger?.LogDebug("Applying PIV transformation to image");
-        try
-        {
-            // Clone the image to avoid modifying the original
-            var processedImage = sourceImage.Clone(ctx =>
+        // Clone the image to avoid modifying the original
+        var processedImage = sourceImage.Clone(ctx =>
             {
-                // IMPORTANT: Order matters! Crop first, then rotate to avoid black borders
+                // Apply transformations in sequence
 
                 // Step 1: Crop to center the face with proper aspect ratio
                 if (!IsCropFull(transform.CropRegion))
@@ -503,12 +495,6 @@ public static class PivProcessor
 
             logger?.LogDebug("PIV transformation applied successfully");
             return Result.Success(processedImage);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Failed to apply PIV transformation");
-            return Result.Failure<Image<Rgba32>>($"Transform application failed: {ex.Message}");
-        }
     }
 
     /// <summary>
@@ -565,7 +551,7 @@ public static class PivProcessor
     }
 
     /// <summary>
-    /// Simple API to convert a JPEG image file to PIV-compliant JPEG 2000 format.
+    /// Simple API to convert a JPEG image file to PIV-compatible JPEG 2000 format.
     /// Uses default settings: 17KB target file size with uniform quality (no ROI).
     /// </summary>
     /// <param name="inputJpegPath">Path to input JPEG image file.</param>
@@ -579,7 +565,7 @@ public static class PivProcessor
     /// - 17KB target file size (0.6 bits/pixel compression rate)
     /// - Uniform quality distribution (ROI disabled)
     /// - Single tile covering entire image for optimal compression
-    /// - PIV-compliant 420x560 output dimensions
+    /// - PIV-compatible 420x560 output dimensions
     /// - Maximized head size within PIV guidelines (240px width)
     /// </remarks>
     [PublicAPI]
@@ -591,13 +577,11 @@ public static class PivProcessor
         IJpeg2000Encoder jpeg2000Encoder
     )
     {
-        try
-        {
-            // Load the JPEG image
-            using var sourceImage = await Image.LoadAsync<Rgba32>(inputJpegPath);
+        // Load the JPEG image
+        using var sourceImage = await Image.LoadAsync<Rgba32>(inputJpegPath);
 
-            // Process with default 20KB level 3 ROI settings (no alignment for smoothest transitions)
-            var result = await ProcessAsync(
+        // Process with default 20KB level 3 ROI settings (no alignment for smoothest transitions)
+        var result = await ProcessAsync(
                     sourceImage,
                     faceDetector,
                     landmarkExtractor,
@@ -615,12 +599,5 @@ public static class PivProcessor
             }
 
             return result;
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure<PivResult>(
-                $"Failed to convert {inputJpegPath} to PIV JP2: {ex.Message}"
-            );
-        }
     }
 }

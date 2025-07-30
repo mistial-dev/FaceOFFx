@@ -73,13 +73,11 @@ public static class RoiVisualizationService
         ILogger? logger = null
     )
     {
-        try
-        {
-            logger?.LogDebug(
-                "Starting DrawRoiRegions with strokeWidth={StrokeWidth}, showLabels={ShowLabels}",
-                strokeWidth,
-                showLabels
-            );
+        logger?.LogDebug(
+            "Starting DrawRoiRegions with strokeWidth={StrokeWidth}, showLabels={ShowLabels}",
+            strokeWidth,
+            showLabels
+        );
 
             // Validate inputs
             var validationResult = roiSet.Validate();
@@ -149,12 +147,6 @@ public static class RoiVisualizationService
 
             logger?.LogDebug("Successfully created annotated image with ROI Inner Region");
             return Result.Success(annotatedImage);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "ROI visualization failed");
-            return Result.Failure<Image<Rgba32>>($"ROI visualization failed: {ex.Message}");
-        }
     }
 
     /// <summary>
@@ -183,13 +175,11 @@ public static class RoiVisualizationService
         ILogger? logger = null
     )
     {
-        try
-        {
-            logger?.LogDebug(
-                "Starting DrawLandmarkPoints with pointSize={PointSize}, pointColor={Color}",
-                pointSize,
-                pointColor.HasValue ? "specified" : "Blue"
-            );
+        logger?.LogDebug(
+            "Starting DrawLandmarkPoints with pointSize={PointSize}, pointColor={Color}",
+            pointSize,
+            pointColor.HasValue ? "specified" : "Blue"
+        );
 
             if (!landmarks.IsValid)
             {
@@ -238,12 +228,6 @@ public static class RoiVisualizationService
 
             logger?.LogDebug("Successfully created annotated image with landmark points");
             return Result.Success(annotatedImage);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Landmark visualization failed");
-            return Result.Failure<Image<Rgba32>>($"Landmark visualization failed: {ex.Message}");
-        }
     }
 
     /// <summary>
@@ -276,11 +260,9 @@ public static class RoiVisualizationService
         ILogger? logger = null
     )
     {
-        try
-        {
-            logger?.LogDebug(
-                "Starting complete visualization with strokeWidth={StrokeWidth}, pointSize={PointSize}, showLabels={ShowLabels}",
-                strokeWidth,
+        logger?.LogDebug(
+            "Starting complete visualization with strokeWidth={StrokeWidth}, pointSize={PointSize}, showLabels={ShowLabels}",
+            strokeWidth,
                 pointSize,
                 showLabels
             );
@@ -313,12 +295,6 @@ public static class RoiVisualizationService
                 "Successfully created complete visualization with ROI Inner Region and landmark points"
             );
             return completeResult;
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "Complete visualization failed");
-            return Result.Failure<Image<Rgba32>>($"Complete visualization failed: {ex.Message}");
-        }
     }
 
     /// <summary>
@@ -413,12 +389,10 @@ public static class RoiVisualizationService
         ILogger? logger = null
     )
     {
-        try
-        {
-            logger?.LogDebug(
-                "Starting PIV compliance lines visualization with strokeWidth={StrokeWidth}",
-                strokeWidth
-            );
+        logger?.LogDebug(
+            "Starting PIV compliance lines visualization with strokeWidth={StrokeWidth}",
+            strokeWidth
+        );
 
             // Clone the image to avoid modifying the original
             var annotatedImage = sourceImage.Clone(ctx =>
@@ -534,13 +508,5 @@ public static class RoiVisualizationService
 
             logger?.LogDebug("Successfully created PIV compliance lines visualization");
             return Result.Success(annotatedImage);
-        }
-        catch (Exception ex)
-        {
-            logger?.LogError(ex, "PIV compliance lines visualization failed");
-            return Result.Failure<Image<Rgba32>>(
-                $"PIV compliance lines visualization failed: {ex.Message}"
-            );
-        }
     }
 }

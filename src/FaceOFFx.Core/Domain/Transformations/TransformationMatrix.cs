@@ -1,4 +1,5 @@
 using System.Numerics;
+using CSharpFunctionalExtensions;
 
 namespace FaceOFFx.Core.Domain.Transformations;
 
@@ -87,13 +88,13 @@ public sealed class TransformationMatrix
     /// <summary>
     /// Gets the inverse transformation matrix
     /// </summary>
-    public TransformationMatrix? GetInverse()
+    public Maybe<TransformationMatrix> GetInverse()
     {
         if (Matrix3x2.Invert(_matrix, out var inverse))
         {
-            return new TransformationMatrix(inverse);
+            return Maybe<TransformationMatrix>.From(new TransformationMatrix(inverse));
         }
-        return null;
+        return Maybe<TransformationMatrix>.None;
     }
 
     /// <summary>

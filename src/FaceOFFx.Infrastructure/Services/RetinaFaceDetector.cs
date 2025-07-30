@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using FaceOFFx.Models;
 using JetBrains.Annotations;
 using SixLabors.ImageSharp;
@@ -82,21 +83,21 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             image.Height
         );
 
+        // Prepare input tensor and get scale factors
+        var (inputTensor, scaleX, scaleY) = PrepareInputTensor(image);
+
+        // Get input name
+        var inputName = _session.InputMetadata.Keys.First();
+
+        // Create input
+        var inputs = new List<NamedOnnxValue>
+        {
+            NamedOnnxValue.CreateFromTensor(inputName, inputTensor),
+        };
+
+        // Run inference
         try
         {
-            // Prepare input tensor and get scale factors
-            var (inputTensor, scaleX, scaleY) = PrepareInputTensor(image);
-
-            // Get input name
-            var inputName = _session.InputMetadata.Keys.First();
-
-            // Create input
-            var inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor(inputName, inputTensor),
-            };
-
-            // Run inference
             using var results = await Task.Run(() => _session.Run(inputs), cancellationToken)
                 .ConfigureAwait(false);
 
@@ -111,12 +112,10 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
 
             return Result.Success<IReadOnlyList<DetectedFace>>(detections);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            _logger.LogError(ex, "Face detection failed");
-            return Result.Failure<IReadOnlyList<DetectedFace>>(
-                $"Face detection failed: {ex.Message}"
-            );
+            _logger.LogDebug("Face detection was cancelled");
+            return Result.Failure<IReadOnlyList<DetectedFace>>("Face detection was cancelled");
         }
     }
 
@@ -241,7 +240,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
         }
 
         var candidateDetections =
-            new List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)>();
+            new List<(FaceBox box, float confidence, Maybe<FaceLandmarks5> landmarks)>();
 
         // Process each detection
         for (int i = 0; i < numDetections && i < priors.Count; i++)
@@ -308,7 +307,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             }
 
             // Decode landmarks if available
-            FaceLandmarks5? landmarks = null;
+            Maybe<FaceLandmarks5> landmarks = Maybe<FaceLandmarks5>.None;
             if (landmarkOutput != null && landmarkOutput.Dimensions.Length >= 3)
             {
                 var landmarkTensor =
@@ -329,7 +328,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                 if (decodedLandmarks != null)
                 {
                     // Convert landmark coordinates
-                    landmarks = new FaceLandmarks5(
+                    landmarks = Maybe<FaceLandmarks5>.From(new FaceLandmarks5(
                         new Point2D(
                             (decodedLandmarks[0] - padX) / scale,
                             (decodedLandmarks[1] - padY) / scale
@@ -350,7 +349,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                             (decodedLandmarks[8] - padX) / scale,
                             (decodedLandmarks[9] - padY) / scale
                         )
-                    );
+                    ));
                 }
             }
 
@@ -366,9 +365,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             var detectedFace = new DetectedFace(
                 box,
                 confidence,
-                landmarks != null
-                    ? Maybe<FaceLandmarks5>.From(landmarks)
-                    : Maybe<FaceLandmarks5>.None
+                landmarks
             );
 
             detections.Add(detectedFace);
@@ -482,39 +479,31 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
         float priorH
     )
     {
-        try
+        var landmarks = new float[10]; // 5 landmarks * 2 coordinates
+
+        for (int i = 0; i < 5; i++)
         {
-            var landmarks = new float[10]; // 5 landmarks * 2 coordinates
+            // Decode each landmark point offset in normalized space
+            var lx = landmarkOutput[0, index, i * 2];
+            var ly = landmarkOutput[0, index, i * 2 + 1];
 
-            for (int i = 0; i < 5; i++)
-            {
-                // Decode each landmark point offset in normalized space
-                var lx = landmarkOutput[0, index, i * 2];
-                var ly = landmarkOutput[0, index, i * 2 + 1];
+            // Apply offset relative to prior box (in normalized coordinates)
+            var normalizedX = priorCx + lx * Variances[0] * priorW;
+            var normalizedY = priorCy + ly * Variances[0] * priorH;
 
-                // Apply offset relative to prior box (in normalized coordinates)
-                var normalizedX = priorCx + lx * Variances[0] * priorW;
-                var normalizedY = priorCy + ly * Variances[0] * priorH;
-
-                // Convert to pixel coordinates
-                landmarks[i * 2] = normalizedX * ModelInputSize;
-                landmarks[i * 2 + 1] = normalizedY * ModelInputSize;
-            }
-
-            return landmarks;
+            // Convert to pixel coordinates
+            landmarks[i * 2] = normalizedX * ModelInputSize;
+            landmarks[i * 2 + 1] = normalizedY * ModelInputSize;
         }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Failed to decode landmarks for detection {Index}", index);
-            return null;
-        }
+
+        return landmarks;
     }
 
     /// <summary>
     /// Applies Non-Max Suppression to reduce overlapping detections.
     /// </summary>
-    private List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)> ApplyNonMaxSuppression(
-        List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)> detections,
+    private List<(FaceBox box, float confidence, Maybe<FaceLandmarks5> landmarks)> ApplyNonMaxSuppression(
+        List<(FaceBox box, float confidence, Maybe<FaceLandmarks5> landmarks)> detections,
         float threshold
     )
     {
@@ -525,7 +514,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
 
         // Sort by confidence
         var sorted = detections.OrderByDescending(d => d.confidence).ToList();
-        var selected = new List<(FaceBox, float, FaceLandmarks5?)>();
+        var selected = new List<(FaceBox, float, Maybe<FaceLandmarks5>)>();
 
         while (sorted.Count > 0)
         {

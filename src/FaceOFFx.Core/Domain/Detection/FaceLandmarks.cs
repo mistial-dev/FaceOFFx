@@ -66,7 +66,7 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// The left eye center is calculated as the average position of the six points
     /// that define the eye contour. This center point is crucial for face alignment
     /// operations, particularly for calculating the rotation angle needed for
-    /// PIV-compliant images where eyes must be horizontally aligned.
+    /// PIV-compatible images where eyes must be horizontally aligned.
     /// </remarks>
     public Point2D LeftEyeCenter => ComputeCenter(Points.Skip(36).Take(6).ToList()); // Points 36-41
 
@@ -116,7 +116,7 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// <returns>A Result containing the FacialRoiSet with Appendix C.6 Inner Region or an error message.</returns>
     /// <remarks>
     /// Creates the Inner Region as specified in INCITS 385-2004 Appendix C.6.
-    /// This method is for PIV-compliant images only and uses the standard rectangular region approach.
+    /// This method is for PIV-compatible images only and uses the standard rectangular region approach.
     /// </remarks>
     /// <example>
     /// <code>

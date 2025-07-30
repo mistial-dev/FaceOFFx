@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+
 namespace FaceOFFx.Core.Domain.Transformations;
 
 /// <summary>
@@ -15,22 +17,15 @@ public static class PivJpeg2000Encoder
         int roiStartLevel = 1
     )
     {
-        try
-        {
-            // Use the clean PIV image without any visualization
-            var pivImage = result.PivImage;
-            var roiSet = result.RoiSet;
+        // Use the clean PIV image without any visualization
+        var pivImage = result.PivImage;
+        var roiSet = result.RoiSet;
 
-            // The actual encoding will be done by infrastructure service
-            // This is just a domain-level coordinator
-            return await Task.FromResult(
-                Result.Success(Array.Empty<byte>()) // Placeholder - will integrate with infrastructure
-            );
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure<byte[]>($"JPEG 2000 encoding failed: {ex.Message}");
-        }
+        // The actual encoding will be done by infrastructure service
+        // This is just a domain-level coordinator
+        return await Task.FromResult(
+            Result.Success(Array.Empty<byte>()) // Placeholder - will integrate with infrastructure
+        );
     }
 
     /// <summary>
