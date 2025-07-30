@@ -34,12 +34,78 @@ jobs:
     - name: Pack all projects
       run: |
         dotnet pack src/FaceOFFx.Cli/FaceOFFx.Cli.csproj --configuration Release --no-build --output ./artifacts
-        dotnet pack src/FaceOFFx/FaceOFFx.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx/FaceOFFx.csproj --configuration Release --output ./artifacts
         
-    - name: Generate SBOM
+    - name: Generate and attach SBOM with ML components
       run: |
+        # Install required tools
+        dotnet tool install --global CycloneDX
+        sudo apt-get update && sudo apt-get install -y jq
+        
+        # Generate base SBOM
+        ~/.dotnet/tools/dotnet-CycloneDX . -o ./artifacts -j --filename sbom
+        
+        # The tool creates 'sbom' file (without extension) in the artifacts directory
+        # Add ONNX models as ML components using jq
+        jq '.components += [
+          {
+            "type": "machine-learning-model",
+            "bom-ref": "onnx-model/FaceDetector.onnx",
+            "name": "RetinaFace Face Detection Model",
+            "version": "1.0.0",
+            "description": "RetinaFace face detection model for identifying faces in images",
+            "publisher": "FaceOFFx Project",
+            "hashes": [{
+              "alg": "SHA-256",
+              "content": "'$(sha256sum src/FaceOFFx.Models/Resources/FaceDetector.onnx | cut -d' ' -f1)'"
+            }],
+            "properties": [
+              {"name": "model:framework", "value": "ONNX"},
+              {"name": "model:architecture", "value": "RetinaFace"},
+              {"name": "model:task", "value": "face-detection"},
+              {"name": "model:input_shape", "value": "[1, 3, 640, 640]"},
+              {"name": "model:input_type", "value": "image"},
+              {"name": "model:output_type", "value": "object_detection"},
+              {"name": "model:file_size_bytes", "value": "109458296"},
+              {"name": "model:file_path", "value": "src/FaceOFFx.Models/Resources/FaceDetector.onnx"}
+            ],
+            "externalReferences": [{
+              "type": "distribution",
+              "url": "https://github.com/discipleofhamilton/RetinaFace"
+            }]
+          },
+          {
+            "type": "machine-learning-model",
+            "bom-ref": "onnx-model/landmarks_68_pfld.onnx",
+            "name": "PFLD 68-Point Facial Landmark Detection Model",
+            "version": "1.0.0",
+            "description": "68-point facial landmark detection using PFLD (Practical Facial Landmark Detector)",
+            "publisher": "FaceOFFx Project",
+            "hashes": [{
+              "alg": "SHA-256",
+              "content": "'$(sha256sum src/FaceOFFx.Models/Resources/landmarks_68_pfld.onnx | cut -d' ' -f1)'"
+            }],
+            "properties": [
+              {"name": "model:framework", "value": "ONNX"},
+              {"name": "model:architecture", "value": "PFLD"},
+              {"name": "model:task", "value": "facial-landmark-detection"},
+              {"name": "model:input_shape", "value": "[1, 3, 112, 112]"},
+              {"name": "model:input_type", "value": "image"},
+              {"name": "model:output_type", "value": "landmarks"},
+              {"name": "model:output_shape", "value": "[1, 136]"},
+              {"name": "model:landmarks_count", "value": "68"},
+              {"name": "model:file_size_bytes", "value": "2987921"},
+              {"name": "model:file_path", "value": "src/FaceOFFx.Models/Resources/landmarks_68_pfld.onnx"}
+            ]
+          }
+        ]' ./artifacts/sbom > ./artifacts/sbom-with-ml.json
+        
+        # Move the updated SBOM back
+        mv ./artifacts/sbom-with-ml.json ./artifacts/sbom.json
+        
+        # Also generate Microsoft SBOM for compatibility
         dotnet tool install --global Microsoft.Sbom.DotNetTool
-        sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv ${GITHUB_REF#refs/tags/v} -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
+        ~/.dotnet/tools/sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv ${GITHUB_REF#refs/tags/v} -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
         
     - name: Create Release
       uses: softprops/action-gh-release@v1
