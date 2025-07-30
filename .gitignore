@@ -364,8 +364,7 @@ FodyWeavers.xsd
 # macOS
 .DS_Store
 
-# ONNX model files (they're large)
-*.onnx
+# ONNX model files (now tracked in git)
 
 # Temporary files
 *.tmp
