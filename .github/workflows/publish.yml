@@ -40,7 +40,7 @@ jobs:
       
     - name: Pack library
       run: |
-        dotnet pack src/FaceOFFx.Application/FaceOFFx.Application.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx/FaceOFFx.csproj --configuration Release --output ./artifacts
         
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
