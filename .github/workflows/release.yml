@@ -34,7 +34,7 @@ jobs:
     - name: Pack all projects
       run: |
         dotnet pack src/FaceOFFx.Cli/FaceOFFx.Cli.csproj --configuration Release --no-build --output ./artifacts
-        dotnet pack src/FaceOFFx.Application/FaceOFFx.Application.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx/FaceOFFx.csproj --configuration Release --no-build --output ./artifacts
         
     - name: Generate SBOM
       run: |
