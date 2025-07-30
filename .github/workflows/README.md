@@ -33,7 +33,7 @@ This directory contains the CI/CD workflows for FaceOFFx.
 ## Required Secrets
 
 - `NUGET_API_KEY`: API key for publishing to NuGet.org
-  - Get from: https://www.nuget.org/account/apikeys
+  - Get from: <https://www.nuget.org/account/apikeys>
   - Set in: Settings → Secrets and variables → Actions
 
 ## Versioning

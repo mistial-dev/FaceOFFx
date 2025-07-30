@@ -373,3 +373,5 @@ FodyWeavers.xsd
 # Local environment settings
 *.local.json
 appsettings.local.json
+
+megalinter-reports/
