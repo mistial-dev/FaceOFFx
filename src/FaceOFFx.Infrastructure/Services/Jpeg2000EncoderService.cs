@@ -1,5 +1,6 @@
 using CoreJ2K;
 using CoreJ2K.ImageSharp;
+using JetBrains.Annotations;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -8,6 +9,7 @@ namespace FaceOFFx.Infrastructure.Services;
 /// <summary>
 /// Service for encoding images to JPEG 2000 format with ROI support for PIV compliance.
 /// </summary>
+[PublicAPI]
 public class Jpeg2000EncoderService : IJpeg2000Encoder
 {
     private readonly ILogger<Jpeg2000EncoderService> _logger;
@@ -15,7 +17,7 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
     private static readonly object RegisterLock = new object();
 
     /// <summary>
-    /// Service for encoding images to JPEG 2000 format with ROI regions for PIV compliance.
+    /// Service for encoding images to JPEG 2000 format with ROI Inner Region for PIV compliance.
     /// Implements methods for region-based encoding with configurable parameters.
     /// </summary>
     public Jpeg2000EncoderService(ILogger<Jpeg2000EncoderService> logger)
@@ -26,7 +28,10 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
 
     private void EnsureImageSharpRegistered()
     {
-        _logger.LogDebug("EnsureImageSharpRegistered called, _isRegistered: {IsRegistered}", _isRegistered);
+        _logger.LogDebug(
+            "EnsureImageSharpRegistered called, _isRegistered: {IsRegistered}",
+            _isRegistered
+        );
 
         if (_isRegistered)
         {
@@ -55,7 +60,7 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
     }
 
     /// <summary>
-    /// Encodes an image to JPEG 2000 with ROI regions for PIV compliance.
+    /// Encodes an image to JPEG 2000 with ROI Inner Region for PIV compliance.
     /// Uses JPEG 2000 maxshift ROI encoding with configurable quality balance.
     /// </summary>
     public Result<byte[]> EncodeWithRoi(
@@ -64,10 +69,18 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
         float baseRate = 1.0f,
         int roiStartLevel = 1,
         bool enableRoi = false,
-        bool roiAlign = true)
+        bool roiAlign = true
+    )
     {
-        _logger.LogDebug("EncodeWithRoi started - Image: {Width}x{Height}, BaseRate: {BaseRate}, RoiStartLevel: {RoiStartLevel}, EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
-            image.Width, image.Height, baseRate, roiStartLevel, enableRoi, roiAlign);
+        _logger.LogDebug(
+            "EncodeWithRoi started - Image: {Width}x{Height}, BaseRate: {BaseRate}, RoiStartLevel: {RoiStartLevel}, EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
+            image.Width,
+            image.Height,
+            baseRate,
+            roiStartLevel,
+            enableRoi,
+            roiAlign
+        );
 
         try
         {
@@ -83,12 +96,12 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
             {
                 // Appendix C.6 approach: single Inner Region with higher priority
                 var innerRegion = roiSet.InnerRegion;
-                var roiSpec = $"R {innerRegion.BoundingBox.X} {innerRegion.BoundingBox.Y} " +
-                             $"{innerRegion.BoundingBox.Width} {innerRegion.BoundingBox.Height}";
+                var roiSpec =
+                    $"R {innerRegion.BoundingBox.X} {innerRegion.BoundingBox.Y} "
+                    + $"{innerRegion.BoundingBox.Width} {innerRegion.BoundingBox.Height}";
 
                 parameters["Rroi"] = roiSpec;
                 _logger.LogDebug("Appendix C.6 Inner Region ROI specification: {RoiSpec}", roiSpec);
-
 
                 // Control ROI resolution level priority
                 // Higher values include more resolution levels in ROI priority, reducing quality difference
@@ -114,14 +127,24 @@ public class Jpeg2000EncoderService : IJpeg2000Encoder
             // Use single tile covering entire PIV image for optimal compression efficiency
             // Single tile eliminates tile boundary artifacts and maximizes compression
             parameters["Stiles"] = $"{image.Width} {image.Height}";
-            _logger.LogDebug("Tile size: {Width}x{Height} (single tile)", image.Width, image.Height);
+            _logger.LogDebug(
+                "Tile size: {Width}x{Height} (single tile)",
+                image.Width,
+                image.Height
+            );
 
             // Encode with ROI parameters
             _logger.LogDebug("Starting J2kImage encoding");
             var encodedData = J2kImage.ToBytes(image, parameters);
-            _logger.LogDebug("J2kImage encoding completed, output size: {Size} bytes", encodedData.Length);
+            _logger.LogDebug(
+                "J2kImage encoding completed, output size: {Size} bytes",
+                encodedData.Length
+            );
 
-            _logger.LogInformation("EncodeWithRoi completed successfully, encoded {Bytes} bytes", encodedData.Length);
+            _logger.LogInformation(
+                "EncodeWithRoi completed successfully, encoded {Bytes} bytes",
+                encodedData.Length
+            );
             return Result.Success(encodedData);
         }
         catch (Exception ex)

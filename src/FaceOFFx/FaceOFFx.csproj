@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <PackageId>FaceOFFx</PackageId>
@@ -21,37 +20,59 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
-
   <!-- Reference all projects that should be included in the package -->
   <ItemGroup>
     <ProjectReference Include="..\FaceOFFx.Core\FaceOFFx.Core.csproj" PrivateAssets="all" />
-    <ProjectReference Include="..\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj" PrivateAssets="all" />
+    <ProjectReference
+      Include="..\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj"
+      PrivateAssets="all"
+    />
     <ProjectReference Include="..\FaceOFFx.Models\FaceOFFx.Models.csproj" PrivateAssets="all" />
   </ItemGroup>
-
   <!-- Include all assemblies from referenced projects -->
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="BuildOnlySettings;ResolveReferences">
+  <Target
+    Name="CopyProjectReferencesToPackage"
+    DependsOnTargets="BuildOnlySettings;ResolveReferences"
+  >
     <ItemGroup>
       <!-- Include all DLLs from project references -->
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->'%(FullPath)')" Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(Extension)' == '.dll'" />
+      <BuildOutputInPackage
+        Include="@(ReferenceCopyLocalPaths-&gt;'%(FullPath)')"
+        Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(Extension)' == '.dll'"
+      />
       <!-- Include XML documentation files -->
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->'%(FullPath)')" Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(Extension)' == '.xml'" />
+      <BuildOutputInPackage
+        Include="@(ReferenceCopyLocalPaths-&gt;'%(FullPath)')"
+        Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference' and '%(Extension)' == '.xml'"
+      />
     </ItemGroup>
   </Target>
-
   <!-- Include ONNX models as content files -->
   <ItemGroup>
-    <Content Include="..\FaceOFFx.Models\Resources\*.onnx" Pack="true" PackagePath="contentFiles\any\any\Resources\" CopyToOutputDirectory="PreserveNewest" BuildAction="Content" />
+    <Content
+      Include="..\FaceOFFx.Models\Resources\*.onnx"
+      Pack="true"
+      PackagePath="contentFiles\any\any\Resources\"
+      CopyToOutputDirectory="PreserveNewest"
+      BuildAction="Content"
+    />
   </ItemGroup>
-
   <!-- Include icon and readme -->
   <ItemGroup>
-    <None Include="..\..\icon.png" Pack="true" PackagePath="" Condition="Exists('..\..\icon.png')" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="" Condition="Exists('..\..\README.md')" />
+    <None
+      Include="..\..\icon.png"
+      Pack="true"
+      PackagePath=""
+      Condition="Exists('..\..\icon.png')"
+    />
+    <None
+      Include="..\..\README.md"
+      Pack="true"
+      PackagePath=""
+      Condition="Exists('..\..\README.md')"
+    />
   </ItemGroup>
-
 </Project>

@@ -27,7 +27,8 @@ public sealed class ProcessCommand(
     IFaceDetector faceDetector,
     ILandmarkExtractor landmarkExtractor,
     IJpeg2000Encoder jpeg2000Encoder,
-    ILogger<ProcessCommand> logger) : AsyncCommand<ProcessCommand.Settings>
+    ILogger<ProcessCommand> logger
+) : AsyncCommand<ProcessCommand.Settings>
 {
     /// <inheritdoc />
     [UsedImplicitly]
@@ -61,7 +62,9 @@ public sealed class ProcessCommand(
         /// ROI resolution level priority: 0=aggressive, 1=balanced, 2=conservative
         /// </summary>
         [CommandOption("--roi-level <LEVEL>")]
-        [Description("ROI resolution level priority: 0=aggressive, 1=balanced, 2=conservative, 3=smoothest")]
+        [Description(
+            "ROI resolution level priority: 0=aggressive, 1=balanced, 2=conservative, 3=smoothest"
+        )]
         [DefaultValue("3")]
         public string RoiStartLevel { get; set; } = "3";
 
@@ -71,7 +74,6 @@ public sealed class ProcessCommand(
         [CommandOption("--no-roi")]
         [Description("Disable ROI encoding for uniform quality")]
         public bool NoRoi { get; set; }
-
 
         /// <summary>
         /// If true, enable ROI alignment with blocks (disabled by default for smoothest transitions)
@@ -95,22 +97,27 @@ public sealed class ProcessCommand(
         public bool Debug { get; set; }
     }
 
-    private readonly IFaceDetector _faceDetector = faceDetector ?? throw new ArgumentNullException(nameof(faceDetector));
-    private readonly ILandmarkExtractor _landmarkExtractor = landmarkExtractor ?? throw new ArgumentNullException(nameof(landmarkExtractor));
-    private readonly IJpeg2000Encoder _jpeg2000Encoder = jpeg2000Encoder ?? throw new ArgumentNullException(nameof(jpeg2000Encoder));
-    private readonly ILogger<ProcessCommand> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IFaceDetector _faceDetector =
+        faceDetector ?? throw new ArgumentNullException(nameof(faceDetector));
+    private readonly ILandmarkExtractor _landmarkExtractor =
+        landmarkExtractor ?? throw new ArgumentNullException(nameof(landmarkExtractor));
+    private readonly IJpeg2000Encoder _jpeg2000Encoder =
+        jpeg2000Encoder ?? throw new ArgumentNullException(nameof(jpeg2000Encoder));
+    private readonly ILogger<ProcessCommand> _logger =
+        logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc />
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-            
         try
         {
             // Validate input
             if (!File.Exists(settings.InputPath))
             {
                 _logger.LogError("Input file not found: {InputPath}", settings.InputPath);
-                AnsiConsole.MarkupLine($"[red]Error: Input file '{settings.InputPath}' not found.[/]");
+                AnsiConsole.MarkupLine(
+                    $"[red]Error: Input file '{settings.InputPath}' not found.[/]"
+                );
                 return 1;
             }
 
@@ -128,17 +135,29 @@ public sealed class ProcessCommand(
             }
             else
             {
-                _logger.LogWarning("Failed to parse base rate '{BaseRate}', using default: {DefaultRate}", settings.BaseRate, baseRate);
+                _logger.LogWarning(
+                    "Failed to parse base rate '{BaseRate}', using default: {DefaultRate}",
+                    settings.BaseRate,
+                    baseRate
+                );
             }
 
-            if (int.TryParse(settings.RoiStartLevel, out var parsedLevel) && parsedLevel >= 0 && parsedLevel <= 3)
+            if (
+                int.TryParse(settings.RoiStartLevel, out var parsedLevel)
+                && parsedLevel >= 0
+                && parsedLevel <= 3
+            )
             {
                 startLevel = parsedLevel;
                 _logger.LogDebug("Parsed custom ROI start level: {StartLevel}", startLevel);
             }
             else
             {
-                _logger.LogWarning("Failed to parse ROI start level '{RoiStartLevel}', using default: {DefaultLevel}", settings.RoiStartLevel, startLevel);
+                _logger.LogWarning(
+                    "Failed to parse ROI start level '{RoiStartLevel}', using default: {DefaultLevel}",
+                    settings.RoiStartLevel,
+                    startLevel
+                );
             }
 
             // Parse tile size parameter
@@ -147,7 +166,7 @@ public sealed class ProcessCommand(
             var options = new PivProcessingOptions
             {
                 BaseRate = baseRate,
-                RoiStartLevel = startLevel
+                RoiStartLevel = startLevel,
             };
 
             // ROI enabled by default for 20KB level 3 quality
@@ -156,7 +175,7 @@ public sealed class ProcessCommand(
 
             // Process the image
             bool success = false;
-            
+
             if (settings.Debug)
             {
                 // In debug mode, don't use status spinner as it conflicts with logging
@@ -165,18 +184,41 @@ public sealed class ProcessCommand(
 
                 if (settings.Verbose)
                 {
-                    AnsiConsole.MarkupLine($"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]");
+                    AnsiConsole.MarkupLine(
+                        $"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]"
+                    );
                 }
 
                 AnsiConsole.MarkupLine("[grey]Processing with PIV processor...[/]");
-                _logger.LogDebug("Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}", enableRoi, roiAlign);
-                
-                var result = await PivProcessor.ProcessAsync(sourceImage, _faceDetector, _landmarkExtractor, _jpeg2000Encoder, options, enableRoi, roiAlign, _logger);
+                _logger.LogDebug(
+                    "Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
+                    enableRoi,
+                    roiAlign
+                );
+
+                var result = await PivProcessor.ProcessAsync(
+                    sourceImage,
+                    _faceDetector,
+                    _landmarkExtractor,
+                    _jpeg2000Encoder,
+                    options,
+                    enableRoi,
+                    roiAlign,
+                    _logger
+                );
 
                 if (result.IsSuccess)
                 {
                     _logger.LogInformation("PIV processing completed successfully");
-                    await HandleSuccess(result.Value, outputPath, settings, baseRate, startLevel, enableRoi, _logger);
+                    await HandleSuccess(
+                        result.Value,
+                        outputPath,
+                        settings,
+                        baseRate,
+                        startLevel,
+                        enableRoi,
+                        _logger
+                    );
                     success = true;
                 }
                 else
@@ -189,35 +231,64 @@ public sealed class ProcessCommand(
             else
             {
                 // Normal mode with status spinner
-                await AnsiConsole.Status()
-                    .StartAsync("Processing image for PIV compliance...", async ctx =>
-                    {
-                        ctx.Status("Loading image...");
-                        using var sourceImage = await Image.LoadAsync<Rgba32>(settings.InputPath);
-
-                        if (settings.Verbose)
+                await AnsiConsole
+                    .Status()
+                    .StartAsync(
+                        "Processing image for PIV compliance...",
+                        async ctx =>
                         {
-                            AnsiConsole.MarkupLine($"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]");
-                        }
+                            ctx.Status("Loading image...");
+                            using var sourceImage = await Image.LoadAsync<Rgba32>(
+                                settings.InputPath
+                            );
 
-                        ctx.Status("Processing with PIV processor...");
-                        _logger.LogDebug("Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}", enableRoi, roiAlign);
-                        
-                        var result = await PivProcessor.ProcessAsync(sourceImage, _faceDetector, _landmarkExtractor, _jpeg2000Encoder, options, enableRoi, roiAlign, _logger);
+                            if (settings.Verbose)
+                            {
+                                AnsiConsole.MarkupLine(
+                                    $"[blue]Source image: {sourceImage.Width}x{sourceImage.Height} pixels[/]"
+                                );
+                            }
 
-                        if (result.IsSuccess)
-                        {
-                            _logger.LogInformation("PIV processing completed successfully");
-                            await HandleSuccess(result.Value, outputPath, settings, baseRate, startLevel, enableRoi, _logger);
-                            success = true;
+                            ctx.Status("Processing with PIV processor...");
+                            _logger.LogDebug(
+                                "Starting PIV processing with options - EnableRoi: {EnableRoi}, RoiAlign: {RoiAlign}",
+                                enableRoi,
+                                roiAlign
+                            );
+
+                            var result = await PivProcessor.ProcessAsync(
+                                sourceImage,
+                                _faceDetector,
+                                _landmarkExtractor,
+                                _jpeg2000Encoder,
+                                options,
+                                enableRoi,
+                                roiAlign,
+                                _logger
+                            );
+
+                            if (result.IsSuccess)
+                            {
+                                _logger.LogInformation("PIV processing completed successfully");
+                                await HandleSuccess(
+                                    result.Value,
+                                    outputPath,
+                                    settings,
+                                    baseRate,
+                                    startLevel,
+                                    enableRoi,
+                                    _logger
+                                );
+                                success = true;
+                            }
+                            else
+                            {
+                                _logger.LogError("PIV processing failed: {Error}", result.Error);
+                                HandleFailure(result.Error, _logger);
+                                success = false;
+                            }
                         }
-                        else
-                        {
-                            _logger.LogError("PIV processing failed: {Error}", result.Error);
-                            HandleFailure(result.Error, _logger);
-                            success = false;
-                        }
-                    });
+                    );
             }
 
             return success ? 0 : 1;
@@ -240,7 +311,15 @@ public sealed class ProcessCommand(
     /// <param name="startLevel"></param>
     /// <param name="enableRoi"></param>
     /// <param name="logger"></param>
-    private static async Task HandleSuccess(PivResult result, string outputPath, Settings settings, float baseRate, int startLevel, bool enableRoi, ILogger<ProcessCommand> logger)
+    private static async Task HandleSuccess(
+        PivResult result,
+        string outputPath,
+        Settings settings,
+        float baseRate,
+        int startLevel,
+        bool enableRoi,
+        ILogger<ProcessCommand> logger
+    )
     {
         // Save the already-encoded JPEG 2000 image data directly
         await File.WriteAllBytesAsync(outputPath, result.ImageData);
@@ -249,15 +328,21 @@ public sealed class ProcessCommand(
         {
             if (!enableRoi)
             {
-                AnsiConsole.MarkupLine($"[green]✓ JPEG 2000 encoded without ROI (uniform quality)[/]");
+                AnsiConsole.MarkupLine(
+                    $"[green]✓ JPEG 2000 encoded without ROI (uniform quality)[/]"
+                );
             }
             else
             {
-                AnsiConsole.MarkupLine($"[green]✓ JPEG 2000 encoded with 2 ROI regions[/]");
+                AnsiConsole.MarkupLine(
+                    $"[green]✓ JPEG 2000 encoded with ROI (single Inner Region)[/]"
+                );
             }
 
             AnsiConsole.MarkupLine($"[cyan]  Base rate: {baseRate:F1} bits/pixel[/]");
-            AnsiConsole.MarkupLine($"[cyan]  Single tile: {PivConstants.Width}x{PivConstants.Height} pixels[/]");
+            AnsiConsole.MarkupLine(
+                $"[cyan]  Single tile: {PivConstants.Width}x{PivConstants.Height} pixels[/]"
+            );
             if (enableRoi)
             {
                 var roiDesc = GetRoiLevelDescription(startLevel);
@@ -290,8 +375,10 @@ public sealed class ProcessCommand(
             AnsiConsole.MarkupLine("[cyan]Transform Details:[/]");
             var transform = result.AppliedTransform;
 
-            AnsiConsole.MarkupLine($"[cyan]  Crop Region: ({transform.CropRegion.Left:F3}, {transform.CropRegion.Top:F3}) " +
-                                  $"{transform.CropRegion.Width:F3}x{transform.CropRegion.Height:F3}[/]");
+            AnsiConsole.MarkupLine(
+                $"[cyan]  Crop Region: ({transform.CropRegion.Left:F3}, {transform.CropRegion.Top:F3}) "
+                    + $"{transform.CropRegion.Width:F3}x{transform.CropRegion.Height:F3}[/]"
+            );
 
             if (result.Metadata.Any())
             {
@@ -299,7 +386,9 @@ public sealed class ProcessCommand(
                 foreach (var kvp in result.Metadata)
                 {
                     var valueStr = kvp.Value?.ToString() ?? "null";
-                    AnsiConsole.MarkupLine($"[cyan]  {kvp.Key}: {valueStr.Replace("[", "[[").Replace("]", "]]")}[/]");
+                    AnsiConsole.MarkupLine(
+                        $"[cyan]  {kvp.Key}: {valueStr.Replace("[", "[[").Replace("]", "]]")}[/]"
+                    );
                 }
             }
         }
@@ -319,7 +408,9 @@ public sealed class ProcessCommand(
         if (error.Contains("No faces detected"))
         {
             AnsiConsole.MarkupLine("[yellow]💡 Suggestions:[/]");
-            AnsiConsole.MarkupLine("[yellow]  • Ensure the image contains a clear, visible face[/]");
+            AnsiConsole.MarkupLine(
+                "[yellow]  • Ensure the image contains a clear, visible face[/]"
+            );
             AnsiConsole.MarkupLine("[yellow]  • Check that the image is well-lit and in focus[/]");
         }
         else if (error.Contains("Multiple faces"))
@@ -349,8 +440,7 @@ public sealed class ProcessCommand(
             1 => "balanced quality",
             2 => "conservative ROI priority",
             3 => "smoothest transitions",
-            _ => "custom"
+            _ => "custom",
         };
     }
-
 }

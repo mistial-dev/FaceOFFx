@@ -1,4 +1,5 @@
 using FaceOFFx.Core.Domain.Common;
+using JetBrains.Annotations;
 
 namespace FaceOFFx.Core.Domain.Detection;
 
@@ -23,6 +24,7 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// }
 /// </code>
 /// </example>
+[PublicAPI]
 public record FaceBox
 {
     /// <summary>
@@ -30,19 +32,19 @@ public record FaceBox
     /// </summary>
     /// <value>The horizontal position in pixels from the left edge of the image.</value>
     public float X { get; }
-    
+
     /// <summary>
     /// Gets the Y-coordinate of the top-left corner of the bounding box.
     /// </summary>
     /// <value>The vertical position in pixels from the top edge of the image.</value>
     public float Y { get; }
-    
+
     /// <summary>
     /// Gets the width of the bounding box.
     /// </summary>
     /// <value>The horizontal size in pixels. Always positive.</value>
     public float Width { get; }
-    
+
     /// <summary>
     /// Gets the height of the bounding box.
     /// </summary>
@@ -91,31 +93,31 @@ public record FaceBox
     /// </summary>
     /// <value>Same as <see cref="X"/>.</value>
     public float Left => X;
-    
+
     /// <summary>
     /// Gets the top edge Y-coordinate of the bounding box.
     /// </summary>
     /// <value>Same as <see cref="Y"/>.</value>
     public float Top => Y;
-    
+
     /// <summary>
     /// Gets the right edge X-coordinate of the bounding box.
     /// </summary>
     /// <value>The X-coordinate of the right edge (X + Width).</value>
     public float Right => X + Width;
-    
+
     /// <summary>
     /// Gets the bottom edge Y-coordinate of the bounding box.
     /// </summary>
     /// <value>The Y-coordinate of the bottom edge (Y + Height).</value>
     public float Bottom => Y + Height;
-    
+
     /// <summary>
     /// Gets the center point of the bounding box.
     /// </summary>
     /// <value>A <see cref="Point2D"/> representing the geometric center of the box.</value>
     public Point2D Center => new(X + Width / 2, Y + Height / 2);
-    
+
     /// <summary>
     /// Gets the area of the bounding box in square pixels.
     /// </summary>
@@ -133,8 +135,7 @@ public record FaceBox
     /// The containment test is inclusive of the box edges.
     /// </remarks>
     public bool Contains(Point2D point) =>
-        point.X >= Left && point.X <= Right &&
-        point.Y >= Top && point.Y <= Bottom;
+        point.X >= Left && point.X <= Right && point.Y >= Top && point.Y <= Bottom;
 
     /// <summary>
     /// Calculates the Intersection over Union (IoU) metric between this box and another.
@@ -169,7 +170,8 @@ public record FaceBox
             return 0;
         }
 
-        var intersectionArea = (intersectionRight - intersectionLeft) * (intersectionBottom - intersectionTop);
+        var intersectionArea =
+            (intersectionRight - intersectionLeft) * (intersectionBottom - intersectionTop);
         var unionArea = Area + other.Area - intersectionArea;
 
         return intersectionArea / unionArea;
@@ -191,7 +193,7 @@ public record FaceBox
     /// var scaled = original.Scale(0.5f); // Results in box at (50, 50) with size 25x30
     /// </code>
     /// </example>
-    public FaceBox Scale(float factor) => 
+    public FaceBox Scale(float factor) =>
         new(X * factor, Y * factor, Width * factor, Height * factor);
 
     /// <summary>

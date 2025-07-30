@@ -1,12 +1,15 @@
+using AwesomeAssertions;
+using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Core.Domain.Transformations;
-using AwesomeAssertions;
-using CSharpFunctionalExtensions;
 using NUnit.Framework;
 
 namespace FaceOFFx.Core.Tests.Domain.Transformations;
 
+/// <summary>
+/// Tests for the PivResult class and related functionality.
+/// </summary>
 [TestFixture]
 public class PivResultTests
 {
@@ -14,27 +17,39 @@ public class PivResultTests
     private readonly DetectedFace _sampleFace;
     private readonly PivTransform _sampleTransform;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PivResultTests"/> class.
+    /// </summary>
     public PivResultTests()
     {
         var faceBox = FaceBox.Create(100, 100, 200, 200).Value;
         _sampleFace = new DetectedFace(faceBox, 0.95f, Maybe<FaceLandmarks5>.None);
-        
+
         _sampleTransform = new PivTransform
         {
             RotationDegrees = 2.5f,
-            CropRegion = new CropRect { Left = 0.1f, Top = 0.1f, Width = 0.6f, Height = 0.7f },
+            CropRegion = new CropRect
+            {
+                Left = 0.1f,
+                Top = 0.1f,
+                Width = 0.6f,
+                Height = 0.7f,
+            },
             ScaleFactor = 1.2f,
             TargetDimensions = new ImageDimensions(420, 560),
-            IsPivCompliant = true
+            IsPivCompliant = true,
         };
     }
 
+    /// <summary>
+    /// Tests that Success factory method creates valid result with all parameters.
+    /// </summary>
     [Test]
     public void Success_WithAllParameters_ShouldCreateValidResult()
     {
         var metadata = new Dictionary<string, object> { ["ProcessingTime"] = "150ms" };
         var warnings = new List<string> { "Minor rotation applied" };
-        
+
         var result = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
@@ -43,8 +58,9 @@ public class PivResultTests
             _sampleFace,
             "Custom summary",
             warnings,
-            metadata);
-        
+            metadata
+        );
+
         result.ImageData.Should().Equal(_sampleImageData);
         result.MimeType.Should().Be("image/jpeg");
         result.Dimensions.Width.Should().Be(420);
@@ -57,6 +73,9 @@ public class PivResultTests
         result.IsPivCompliant.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that Success factory method uses default values for optional parameters.
+    /// </summary>
     [Test]
     public void Success_WithMinimalParameters_ShouldUseDefaults()
     {
@@ -65,8 +84,9 @@ public class PivResultTests
             "image/jpeg",
             new ImageDimensions(420, 560),
             _sampleTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         result.ProcessingSummary.Should().NotBeEmpty();
         result.ProcessingSummary.Should().Contain("rotated 2.5°");
         result.ProcessingSummary.Should().Contain("upscaled 1.20x");
@@ -75,6 +95,9 @@ public class PivResultTests
         result.Metadata.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Tests that default summary generation handles no-op transformations correctly.
+    /// </summary>
     [Test]
     public void GenerateDefaultSummary_WithNoTransformations_ShouldIndicateCompliance()
     {
@@ -84,19 +107,23 @@ public class PivResultTests
             CropRegion = CropRect.Full,
             ScaleFactor = 1.0f,
             TargetDimensions = new ImageDimensions(420, 560),
-            IsPivCompliant = true
+            IsPivCompliant = true,
         };
-        
+
         var result = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             noOpTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         result.ProcessingSummary.Should().Contain("resized to 420x560");
     }
 
+    /// <summary>
+    /// Tests that default summary correctly indicates downscaling operations.
+    /// </summary>
     [Test]
     public void GenerateDefaultSummary_WithDownscale_ShouldIndicateCorrectly()
     {
@@ -106,41 +133,55 @@ public class PivResultTests
             CropRegion = CropRect.Full,
             ScaleFactor = 0.75f,
             TargetDimensions = new ImageDimensions(420, 560),
-            IsPivCompliant = true
+            IsPivCompliant = true,
         };
-        
+
         var result = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             transform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         result.ProcessingSummary.Should().Contain("downscaled 0.75x");
     }
 
+    /// <summary>
+    /// Tests that default summary indicates significant cropping operations.
+    /// </summary>
     [Test]
     public void GenerateDefaultSummary_WithSignificantCrop_ShouldIndicate()
     {
         var transform = new PivTransform
         {
             RotationDegrees = 0f,
-            CropRegion = new CropRect { Left = 0, Top = 0, Width = 0.5f, Height = 0.5f },
+            CropRegion = new CropRect
+            {
+                Left = 0,
+                Top = 0,
+                Width = 0.5f,
+                Height = 0.5f,
+            },
             ScaleFactor = 1.0f,
             TargetDimensions = new ImageDimensions(420, 560),
-            IsPivCompliant = true
+            IsPivCompliant = true,
         };
-        
+
         var result = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             transform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         result.ProcessingSummary.Should().Contain("cropped to");
     }
 
+    /// <summary>
+    /// Tests that validation succeeds for a properly constructed result.
+    /// </summary>
     [Test]
     public void Validate_WithValidResult_ShouldReturnSuccess()
     {
@@ -149,13 +190,17 @@ public class PivResultTests
             "image/jpeg",
             new ImageDimensions(420, 560),
             _sampleTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         var validation = result.Validate();
-        
+
         validation.IsSuccess.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that validation fails when image data is null.
+    /// </summary>
     [Test]
     public void Validate_WithNullImageData_ShouldReturnFailure()
     {
@@ -165,15 +210,18 @@ public class PivResultTests
             MimeType = "image/jpeg",
             Dimensions = new ImageDimensions(420, 560),
             AppliedTransform = _sampleTransform,
-            SourceFace = _sampleFace
+            SourceFace = _sampleFace,
         };
-        
+
         var validation = result.Validate();
-        
+
         validation.IsFailure.Should().BeTrue();
         validation.Error.Should().Contain("image data is null or empty");
     }
 
+    /// <summary>
+    /// Tests that validation fails when image data is empty.
+    /// </summary>
     [Test]
     public void Validate_WithEmptyImageData_ShouldReturnFailure()
     {
@@ -183,15 +231,18 @@ public class PivResultTests
             MimeType = "image/jpeg",
             Dimensions = new ImageDimensions(420, 560),
             AppliedTransform = _sampleTransform,
-            SourceFace = _sampleFace
+            SourceFace = _sampleFace,
         };
-        
+
         var validation = result.Validate();
-        
+
         validation.IsFailure.Should().BeTrue();
         validation.Error.Should().Contain("image data is null or empty");
     }
 
+    /// <summary>
+    /// Tests that validation fails when MIME type is empty.
+    /// </summary>
     [Test]
     public void Validate_WithEmptyMimeType_ShouldReturnFailure()
     {
@@ -201,15 +252,18 @@ public class PivResultTests
             MimeType = "",
             Dimensions = new ImageDimensions(420, 560),
             AppliedTransform = _sampleTransform,
-            SourceFace = _sampleFace
+            SourceFace = _sampleFace,
         };
-        
+
         var validation = result.Validate();
-        
+
         validation.IsFailure.Should().BeTrue();
         validation.Error.Should().Contain("MIME type is required");
     }
 
+    /// <summary>
+    /// Tests that validation fails when dimensions are below PIV requirements.
+    /// </summary>
     [Test]
     public void Validate_WithTooSmallDimensions_ShouldReturnFailure()
     {
@@ -219,44 +273,52 @@ public class PivResultTests
             MimeType = "image/jpeg",
             Dimensions = new ImageDimensions(300, 400),
             AppliedTransform = _sampleTransform,
-            SourceFace = _sampleFace
+            SourceFace = _sampleFace,
         };
-        
+
         var validation = result.Validate();
-        
+
         validation.IsFailure.Should().BeTrue();
         validation.Error.Should().Contain("do not meet PIV minimum requirements");
     }
 
+    /// <summary>
+    /// Tests that PIV compliance status matches the transform's compliance flag.
+    /// </summary>
     [Test]
     public void IsPivCompliant_ShouldReflectTransformCompliance()
     {
         var compliantTransform = _sampleTransform with { IsPivCompliant = true };
         var nonCompliantTransform = _sampleTransform with { IsPivCompliant = false };
-        
+
         var compliantResult = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             compliantTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         var nonCompliantResult = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             nonCompliantTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         compliantResult.IsPivCompliant.Should().BeTrue();
         nonCompliantResult.IsPivCompliant.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Tests that default processing options have the expected values.
+    /// </summary>
     [Test]
     public void PivProcessingOptions_Default_ShouldHaveExpectedValues()
     {
         var options = PivProcessingOptions.Default;
-        
+
         options.BaseRate.Should().Be(0.7f);
         options.RoiStartLevel.Should().Be(3);
         options.PreserveExifMetadata.Should().BeFalse();
@@ -264,11 +326,14 @@ public class PivResultTests
         options.RequireSingleFace.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that high quality processing options have appropriate values.
+    /// </summary>
     [Test]
     public void PivProcessingOptions_HighQuality_ShouldHaveHigherSettings()
     {
         var options = PivProcessingOptions.HighQuality;
-        
+
         options.BaseRate.Should().Be(2.0f);
         options.RoiStartLevel.Should().Be(2);
         options.PreserveExifMetadata.Should().BeTrue();
@@ -276,11 +341,14 @@ public class PivResultTests
         options.RequireSingleFace.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests that fast processing options have appropriate values.
+    /// </summary>
     [Test]
     public void PivProcessingOptions_Fast_ShouldHaveLowerSettings()
     {
         var options = PivProcessingOptions.Fast;
-        
+
         options.BaseRate.Should().Be(0.8f);
         options.RoiStartLevel.Should().Be(0);
         options.PreserveExifMetadata.Should().BeFalse();
@@ -288,6 +356,9 @@ public class PivResultTests
         options.RequireSingleFace.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Tests equality comparison between PivResult instances.
+    /// </summary>
     [Test]
     public void ResultEquality_ShouldWorkCorrectly()
     {
@@ -296,27 +367,30 @@ public class PivResultTests
             "image/jpeg",
             new ImageDimensions(420, 560),
             _sampleTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         var result2 = PivResult.Success(
             _sampleImageData,
             "image/jpeg",
             new ImageDimensions(420, 560),
             _sampleTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         var result3 = PivResult.Success(
             new byte[] { 6, 7, 8 },
             "image/jpeg",
             new ImageDimensions(420, 560),
             _sampleTransform,
-            _sampleFace);
-        
+            _sampleFace
+        );
+
         result1.ImageData.Should().Equal(result2.ImageData);
         result1.MimeType.Should().Be(result2.MimeType);
         result1.Dimensions.Should().Be(result2.Dimensions);
         result1.IsPivCompliant.Should().Be(result2.IsPivCompliant);
-        
+
         result1.ImageData.Should().NotEqual(result3.ImageData);
     }
 }

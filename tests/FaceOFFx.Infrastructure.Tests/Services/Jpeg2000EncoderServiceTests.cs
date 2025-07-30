@@ -1,13 +1,13 @@
+using AwesomeAssertions;
 using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Drawing.Processing;
-using AwesomeAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace FaceOFFx.Infrastructure.Tests.Services;
 
@@ -105,7 +105,8 @@ public class Jpeg2000EncoderServiceTests
             baseRate: 0.7f,
             roiStartLevel: 3,
             enableRoi: true,
-            roiAlign: false);
+            roiAlign: false
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -137,7 +138,8 @@ public class Jpeg2000EncoderServiceTests
             roiSetResult.Value,
             baseRate: 1.0f,
             roiStartLevel: 1,
-            enableRoi: false);
+            enableRoi: false
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -164,7 +166,8 @@ public class Jpeg2000EncoderServiceTests
             image,
             roiSetResult.Value,
             baseRate: baseRate,
-            enableRoi: true);
+            enableRoi: true
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -183,7 +186,9 @@ public class Jpeg2000EncoderServiceTests
     [TestCase(1)]
     [TestCase(2)]
     [TestCase(3)]
-    public void EncodeWithRoi_WithDifferentRoiStartLevels_ShouldEncodeSuccessfully(int roiStartLevel)
+    public void EncodeWithRoi_WithDifferentRoiStartLevels_ShouldEncodeSuccessfully(
+        int roiStartLevel
+    )
     {
         using var image = new Image<Rgba32>(420, 560);
         DrawTestPattern(image);
@@ -195,7 +200,8 @@ public class Jpeg2000EncoderServiceTests
             roiSetResult.Value,
             baseRate: 0.7f,
             roiStartLevel: roiStartLevel,
-            enableRoi: true);
+            enableRoi: true
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -221,7 +227,8 @@ public class Jpeg2000EncoderServiceTests
             baseRate: 0.7f,
             roiStartLevel: 3,
             enableRoi: true,
-            roiAlign: roiAlign);
+            roiAlign: roiAlign
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -243,11 +250,7 @@ public class Jpeg2000EncoderServiceTests
         var innerRegion = new RoiRegion("CustomInner", 3, customBox, landmarkIndices);
         var roiSet = new FacialRoiSet(innerRegion);
 
-        var result = _encoder.EncodeWithRoi(
-            image,
-            roiSet,
-            baseRate: 0.7f,
-            enableRoi: true);
+        var result = _encoder.EncodeWithRoi(image, roiSet, baseRate: 0.7f, enableRoi: true);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -301,7 +304,8 @@ public class Jpeg2000EncoderServiceTests
             roiSetResult.Value,
             baseRate: 0.7f,
             roiStartLevel: 3,
-            enableRoi: true);
+            enableRoi: true
+        );
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
@@ -358,10 +362,7 @@ public class Jpeg2000EncoderServiceTests
         var innerRegion = new RoiRegion("FullImage", 3, edgeBox, landmarkIndices);
         var roiSet = new FacialRoiSet(innerRegion);
 
-        var result = _encoder.EncodeWithRoi(
-            image,
-            roiSet,
-            enableRoi: true);
+        var result = _encoder.EncodeWithRoi(image, roiSet, enableRoi: true);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();

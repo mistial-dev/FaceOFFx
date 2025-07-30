@@ -11,12 +11,17 @@
 
 ## About
 
-FaceOFFx is a specialized, high-performance facial processing library for .NET, focused on **PIV (Personal Identity Verification)** compliance for government ID cards and credentials. Derived from the excellent **[FaceONNX](https://github.com/FaceONNX/FaceONNX)** library, FaceOFFx extends its capabilities with PIV-specific transformations, FIPS 201-3 compliance features, and advanced JPEG 2000 ROI encoding.
+FaceOFFx is a specialized, high-performance facial processing library for .NET, focused on **PIV (Personal Identity
+Verification)**
+compliance for issuing credentials that follow government standards (FIPS 201). Derived from the excellent *
+*[FaceONNX](https://github.com/FaceONNX/FaceONNX)** library,
+FaceOFFx extends its capabilities with PIV-specific transformations, FIPS 201-3 compliance features, and advanced JPEG
+2000 ROI encoding.
 
 ### Key Features
 
 - **PIV/TWIC Compliance** - FIPS 201-3 compliant 420×560 output
-- **JPEG 2000 ROI Encoding** - Smart compression with facial region priority  
+- **JPEG 2000 ROI Encoding** - Smart compression with facial region priority
 - **68-Point Landmark Detection** - Precise facial feature mapping
 - **High Performance** - Direct ONNX Runtime integration
 - **Cross-Platform** - Windows, Linux, macOS via .NET 8
@@ -50,6 +55,7 @@ if (result.IsSuccess)
 ```
 
 ### Default Configuration
+
 - **Output**: 420×560 pixels (PIV standard)
 - **Format**: JPEG 2000 with ROI
 - **File Size**: ~20KB
@@ -78,21 +84,33 @@ Install-Package FaceOFFx
 ```
 
 ### Requirements
+
 - .NET 8.0 or later
 - Windows, Linux, or macOS
 - No GPU required (CPU inference supported)
 
 ## Sample Gallery
 
-See the power of FaceOFFx with these real-world examples. All images processed with default settings (20KB, ROI Level 3).
+See the power of FaceOFFx with these real-world examples. All images are processed with default settings (20KB, ROI
+Level 3).
 
-| Original                                                                                                                          | PIV Processed                                                                                                                       | ROI Visualization                                                                                                           | Results                                                    |
-|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_300w.jpg) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg) | Size: 20,647 bytes<br>Rotation: 0.4°<br>Head width: 240px  |
-| ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_300w.jpg)               | ![Bush Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_300w.jpg)               | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi_300w.jpg)               | Size: 20,607 bytes<br>Rotation: 3.0°<br>Head width: 240px  |
-| ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_300w.jpg)             | ![Trump Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_300w.jpg)             | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi_300w.jpg)             | Size: 20,592 bytes<br>Rotation: 1.5°<br>Head width: 240px  |
-| ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_300w.jpg)         | ![Johnson Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_300w.jpg)         | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi_300w.jpg)         | Size: 20,581 bytes<br>Rotation: 0.2°<br>Head width: 240px  |
-| ![Starmer Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/starmer_300w.jpg)         | ![Starmer Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_300w.jpg)         | ![Starmer ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/starmer_roi_300w.jpg)         | Size: 20,645 bytes<br>Rotation: -1.7°<br>Head width: 240px |
+| Original                                                                                                                          | PIV Processed                                                                                                                       | ROI Visualization                                                                                                           |
+|-----------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_300w.jpg) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg) |
+| ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_300w.jpg)               | ![Bush Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_300w.jpg)               | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi_300w.jpg)               |
+| ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_300w.jpg)             | ![Trump Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_300w.jpg)             | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi_300w.jpg)             |
+| ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_300w.jpg)         | ![Johnson Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_300w.jpg)         | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi_300w.jpg)         |
+| ![Starmer Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/starmer_300w.jpg)         | ![Starmer Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_300w.jpg)         | ![Starmer ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/starmer_roi_300w.jpg)         |
+
+### Processing Results
+
+| Sample        | File Size    | Rotation Applied |
+|---------------|--------------|------------------|
+| Generic Guy   | 20,647 bytes | 0.4°             |
+| George Bush   | 20,607 bytes | 3.0°             |
+| Donald Trump  | 20,592 bytes | 1.5°             |
+| Boris Johnson | 20,581 bytes | 0.2°             |
+| Keir Starmer  | 20,645 bytes | -1.7°            |
 
 ### Understanding the Visualizations
 
@@ -105,19 +123,23 @@ See the power of FaceOFFx with these real-world examples. All images processed w
 
 The head width measurement is crucial for PIV compliance but presents challenges with 68-point facial landmarks:
 
-**What we measure**: The widest points of the face contour (landmarks 0-16), which represent the jawline from ear to ear. We then create a level line at the average Y-position of these widest points.
+**What we measure**: The widest points of the face contour (landmarks 0-16), which represent the jawline from ear to
+ear. We then create a level line at the average Y-position of these widest points.
 
-**Why this approach**: 
+**Why this approach**:
+
 - The 68-point landmark model doesn't include true ear positions
 - Using the widest jaw points provides a consistent measurement
 - Leveling the line improves visual aesthetics while maintaining accurate width
 
 **Limitations**:
+
 - The measurement is typically lower than actual ear level
 - True head width at the temples/ears may be wider
 - This is a fundamental limitation of the 68-point model
 
-**PIV Compliance**: The key requirement is that Line CC width ≥ 240 pixels. The exact vertical position is less critical than ensuring the face is large enough in the frame.
+**PIV Compliance**: The key requirement is that Line CC width ≥ 240 pixels. The exact vertical position is less critical
+than ensuring the face is large enough in the frame.
 
 ## API Reference
 
@@ -279,7 +301,7 @@ dotnet pack --configuration Release
 
 ### Project Structure
 
-```
+```text
 FaceOFFx/
 ├── src/
 │   ├── FaceOFFx/                # Domain models and interfaces
@@ -307,7 +329,7 @@ FaceOFFx ensures compliance with government standards:
 The library uses advanced ROI (Region of Interest) encoding to optimize quality:
 
 - **Single Facial Region** - Highest quality preservation for the complete facial area
-- **Background** - Lower quality for non-facial areas  
+- **Background** - Lower quality for non-facial areas
 - **Smooth Transitions** - Level 3 default prevents harsh boundaries
 
 ### ONNX Models
@@ -321,20 +343,23 @@ The library uses advanced ROI (Region of Interest) encoding to optimize quality:
 
 - **.NET 8.0** or later
 - **Dependencies**:
-  - Microsoft.ML.OnnxRuntime (CPU inference)
-  - SixLabors.ImageSharp (Image processing)
-  - CoreJ2K (JPEG 2000 encoding)
-  - CSharpFunctionalExtensions (Error handling)
+    - Microsoft.ML.OnnxRuntime (CPU inference)
+    - SixLabors.ImageSharp (Image processing)
+    - CoreJ2K (JPEG 2000 encoding)
+    - CSharpFunctionalExtensions (Error handling)
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Contributions are welcome! Please read our [Contributing Guide](docs/CONTRIBUTING.md) for details on our code of conduct
+and the process for submitting pull requests.
 
 ## Security and Supply Chain
 
 ### Software Bill of Materials (SBOM)
 
-A complete Software Bill of Materials is available in [sbom/faceoffx-sbom.json](sbom/faceoffx-sbom.json) in CycloneDX format. This includes:
+A complete Software Bill of Materials is available in [sbom/faceoffx-sbom.json](sbom/faceoffx-sbom.json) in CycloneDX
+format. This includes:
+
 - All direct and transitive dependencies
 - License information for each component
 - Version information and checksums
@@ -355,10 +380,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 |--------------------------------|-------------------------------------------------------------|--------------|-------------------------------------------------------------------------------------------------|
 | **FaceONNX**                   | Base facial processing library this project is derived from | MIT          | [FaceONNX/FaceONNX](https://github.com/FaceONNX/FaceONNX)                                       |
 | **RetinaFace**                 | Face detection model (FaceDetector.onnx)                    | MIT          | [discipleofhamilton/RetinaFace](https://github.com/discipleofhamilton/RetinaFace)               |
-| **PFLD**                       | 68-point facial landmark detection (landmarks_68_pfld.onnx) | MIT          | [Hsintao/pfld_106_face_landmarks](https://github.com/Hsintao/pfld_106_face_landmarks)           |
+| **PFLD**                       | 68-point facial landmark detection (landmarks_68_pfld.onnx) | MIT          | [FaceONNX/FaceONNX.Models](https://github.com/FaceONNX/FaceONNX.Models)                         |
 | **ONNX Runtime**               | High-performance inference engine                           | MIT          | [Microsoft/onnxruntime](https://github.com/microsoft/onnxruntime)                               |
 | **ImageSharp**                 | Cross-platform 2D graphics library                          | Apache-2.0   | [SixLabors/ImageSharp](https://github.com/SixLabors/ImageSharp)                                 |
-| **CoreJ2K**                    | JPEG 2000 encoding with ROI support                         | BSD-2-Clause | [Efferent-Health/CoreJ2K](https://github.com/Efferent-Health/CoreJ2K)                           |
+| **CoreJ2K**                    | JPEG 2000 encoding with ROI support                         | BSD-2-Clause | [cinderblocks/CoreJ2K](https://github.com/cinderblocks/CoreJ2K)                                 |
 | **CSharpFunctionalExtensions** | Functional programming extensions                           | MIT          | [vkhorikov/CSharpFunctionalExtensions](https://github.com/vkhorikov/CSharpFunctionalExtensions) |
 | **Spectre.Console**            | Beautiful console applications                              | MIT          | [spectreconsole/spectre.console](https://github.com/spectreconsole/spectre.console)             |
 
@@ -372,13 +397,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Special Thanks
 
-- **FaceONNX** - This project is derived from FaceONNX, which provides the foundational facial processing capabilities and model infrastructure
-- The **68-point facial landmark** annotation scheme was originally developed by the iBUG group at Imperial College London
+- **FaceONNX** - This project is derived from FaceONNX, which provides the foundational facial processing capabilities
+  and model infrastructure
+- The **68-point facial landmark** annotation scheme was originally developed by the iBUG group at Imperial College
+  London
 - **PIV Standards Community** for comprehensive compliance guidance
 
----
+### Quote
 
----
-
-*Built with care for secure identity verification*  
-*"Face... off... No more drugs for that man!"* - [Watch Scene](https://www.youtube.com/watch?v=3bdv8MjwzxA)
+> "Face... off... No more drugs for that man!" - [Watch Scene](https://www.youtube.com/watch?v=3bdv8MjwzxA)

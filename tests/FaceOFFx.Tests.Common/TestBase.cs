@@ -16,6 +16,7 @@ public abstract class TestBase
     /// Gets the test service provider used to resolve test dependencies.
     /// </summary>
     protected IServiceProvider ServiceProvider { get; private set; } = null!;
+
     /// <summary>
     /// Gets the logger instance for the tests.
     /// </summary>
@@ -27,7 +28,6 @@ public abstract class TestBase
     [OneTimeSetUp]
     public virtual void OneTimeSetUp()
     {
-
         // Configure test services
         var services = new ServiceCollection();
         ConfigureServices(services);
@@ -67,7 +67,6 @@ public abstract class TestBase
         // Override in derived classes for test-specific cleanup
     }
 
-
     /// <summary>
     /// Configure test services
     /// </summary>
@@ -87,8 +86,6 @@ public abstract class TestBase
         return Substitute.For<ILogger<T>>();
     }
 
-
-
     /// <summary>
     /// Assert that an action throws a specific exception
     /// </summary>
@@ -106,14 +103,19 @@ public abstract class TestBase
     /// <summary>
     /// Assert that an async action throws a specific exception
     /// </summary>
-    protected static async Task AssertThrowsAsync<TException>(Func<Task> action, string? expectedMessage = null)
+    protected static async Task AssertThrowsAsync<TException>(
+        Func<Task> action,
+        string? expectedMessage = null
+    )
         where TException : Exception
     {
         TException? exception = null;
         try
         {
             await action();
-            Assert.Fail($"Expected {typeof(TException).Name} to be thrown but no exception was thrown.");
+            Assert.Fail(
+                $"Expected {typeof(TException).Name} to be thrown but no exception was thrown."
+            );
         }
         catch (TException ex)
         {
@@ -129,7 +131,8 @@ public abstract class TestBase
     /// <summary>
     /// Get a service from the test service provider
     /// </summary>
-    protected T GetService<T>() where T : notnull => ServiceProvider.GetRequiredService<T>();
+    protected T GetService<T>()
+        where T : notnull => ServiceProvider.GetRequiredService<T>();
 
     /// <summary>
     /// Get an optional service from the test service provider
@@ -145,13 +148,14 @@ public abstract class UnitTestBase : TestBase
     /// <summary>
     /// Create a substitute/mock for testing
     /// </summary>
-    protected T CreateSubstitute<T>() where T : class => Substitute.For<T>();
+    protected T CreateSubstitute<T>()
+        where T : class => Substitute.For<T>();
 
     /// <summary>
     /// Create a substitute with specific constructor arguments
     /// </summary>
-    protected T CreateSubstitute<T>(params object[] constructorArguments) where T : class
-        => Substitute.For<T>(constructorArguments);
+    protected T CreateSubstitute<T>(params object[] constructorArguments)
+        where T : class => Substitute.For<T>(constructorArguments);
 }
 
 /// <summary>
@@ -171,7 +175,10 @@ public abstract class IntegrationTestBase : TestBase
         base.SetUp();
 
         // Create temp directory for each test
-        TempDirectory = Path.Combine(Path.GetTempPath(), $"FaceOFFx_IntegrationTest_{Guid.NewGuid():N}");
+        TempDirectory = Path.Combine(
+            Path.GetTempPath(),
+            $"FaceOFFx_IntegrationTest_{Guid.NewGuid():N}"
+        );
         Directory.CreateDirectory(TempDirectory);
     }
 
@@ -192,7 +199,9 @@ public abstract class IntegrationTestBase : TestBase
         }
         catch (Exception ex)
         {
-            TestContext.WriteLine($"Warning: Failed to clean up temp directory {TempDirectory}: {ex.Message}");
+            TestContext.WriteLine(
+                $"Warning: Failed to clean up temp directory {TempDirectory}: {ex.Message}"
+            );
         }
     }
 

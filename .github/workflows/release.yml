@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
 env:
   DOTNET_VERSION: "8.0.x"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -16,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: "actions/checkout@v4"
         with:
           lfs: true
 
@@ -57,7 +60,7 @@ jobs:
               "publisher": "FaceOFFx Project",
               "hashes": [{
                 "alg": "SHA-256",
-                "content": "'$(sha256sum src/FaceOFFx.Models/Resources/FaceDetector.onnx | cut -d' ' -f1)'"
+                "content": "'"$(sha256sum src/FaceOFFx.Models/Resources/FaceDetector.onnx | cut -d' ' -f1)"'"
               }],
               "properties": [
                 {"name": "model:framework", "value": "ONNX"},
@@ -83,7 +86,7 @@ jobs:
               "publisher": "FaceOFFx Project",
               "hashes": [{
                 "alg": "SHA-256",
-                "content": "'$(sha256sum src/FaceOFFx.Models/Resources/landmarks_68_pfld.onnx | cut -d' ' -f1)'"
+                "content": "'"$(sha256sum src/FaceOFFx.Models/Resources/landmarks_68_pfld.onnx | cut -d' ' -f1)"'"
               }],
               "properties": [
                 {"name": "model:framework", "value": "ONNX"},
@@ -105,10 +108,10 @@ jobs:
 
           # Also generate Microsoft SBOM for compatibility
           dotnet tool install --global Microsoft.Sbom.DotNetTool
-          ~/.dotnet/tools/sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv ${GITHUB_REF#refs/tags/v} -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
+          ~/.dotnet/tools/sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv "${GITHUB_REF#refs/tags/v}" -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             ./artifacts/*.nupkg

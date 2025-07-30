@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "suppressions": [
+    {
+      "rule": "DS173237",
+      "justification": "SHA-256 hashes in SBOM are not secrets - they are checksums for integrity verification",
+      "paths": [
+        "sbom/**/*.json"
+      ]
+    },
+    {
+      "rule": "DS173237", 
+      "justification": "IDE configuration files are gitignored and not part of the codebase",
+      "paths": [
+        ".idea/**/*"
+      ]
+    },
+    {
+      "rule": "DS137138",
+      "justification": "HTTP URLs in auto-generated SBOM are from package metadata and not used for network requests",
+      "paths": [
+        "sbom/**/*.json"
+      ]
+    }
+  ],
+  "ignoreFiles": [
+    ".idea/**/*",
+    "artifacts/**/*",
+    "bin/**/*",
+    "obj/**/*"
+  ]
+}

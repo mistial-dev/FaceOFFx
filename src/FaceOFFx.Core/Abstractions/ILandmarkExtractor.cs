@@ -1,4 +1,5 @@
 using FaceOFFx.Core.Domain.Detection;
+using JetBrains.Annotations;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -7,6 +8,7 @@ namespace FaceOFFx.Core.Abstractions;
 /// <summary>
 /// Interface for facial landmark extraction
 /// </summary>
+[PublicAPI]
 public interface ILandmarkExtractor
 {
     /// <summary>
@@ -19,5 +21,6 @@ public interface ILandmarkExtractor
     Task<Result<FaceLandmarks68>> ExtractLandmarksAsync(
         Image<Rgba32> image,
         FaceBox faceBox,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default
+    );
 }

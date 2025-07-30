@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace FaceOFFx.Core.Domain.Common;
 
 /// <summary>
@@ -13,34 +15,36 @@ namespace FaceOFFx.Core.Domain.Common;
 /// <code>
 /// // Create a simple range
 /// var ageRange = Range&lt;int&gt;.Create(18, 65).Value;
-/// 
+///
 /// // Create a range with target
 /// var tempRange = Range&lt;float&gt;.Create(20.0f, 25.0f, 22.5f).Value;
-/// 
+///
 /// // Check containment
 /// bool isValid = ageRange.Contains(25); // true
-/// 
+///
 /// // Calculate deviation
 /// float deviation = tempRange.CalculateDeviation(26.0f, x => x);
-/// 
+///
 /// // Use extension methods for float ranges
 /// var floatRange = (0.0f, 1.0f).ToRange();
 /// </code>
 /// </example>
-public sealed record Range<T> where T : IComparable<T>
+[PublicAPI]
+public sealed record Range<T>
+    where T : IComparable<T>
 {
     /// <summary>
     /// Gets the minimum value of the range (inclusive).
     /// </summary>
     /// <value>The lower bound of the range.</value>
     public T Min { get; }
-    
+
     /// <summary>
     /// Gets the maximum value of the range (inclusive).
     /// </summary>
     /// <value>The upper bound of the range.</value>
     public T Max { get; }
-    
+
     /// <summary>
     /// Gets the optional target value within the range.
     /// </summary>
@@ -53,7 +57,7 @@ public sealed record Range<T> where T : IComparable<T>
     /// When present, it must satisfy: Min ≤ Target ≤ Max.
     /// </remarks>
     public Maybe<T> Target { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Range{T}"/> class.
     /// </summary>
@@ -66,7 +70,7 @@ public sealed record Range<T> where T : IComparable<T>
         Max = max;
         Target = target;
     }
-    
+
     /// <summary>
     /// Creates a new range with specified minimum and maximum values.
     /// </summary>
@@ -84,12 +88,14 @@ public sealed record Range<T> where T : IComparable<T>
     {
         if (min.CompareTo(max) > 0)
         {
-            return Result.Failure<Range<T>>($"Min value {min} cannot be greater than max value {max}");
+            return Result.Failure<Range<T>>(
+                $"Min value {min} cannot be greater than max value {max}"
+            );
         }
 
         return Result.Success(new Range<T>(min, max, Maybe<T>.None));
     }
-    
+
     /// <summary>
     /// Creates a new range with specified minimum, maximum, and target values.
     /// </summary>
@@ -109,17 +115,21 @@ public sealed record Range<T> where T : IComparable<T>
     {
         if (min.CompareTo(max) > 0)
         {
-            return Result.Failure<Range<T>>($"Min value {min} cannot be greater than max value {max}");
+            return Result.Failure<Range<T>>(
+                $"Min value {min} cannot be greater than max value {max}"
+            );
         }
 
         if (target.CompareTo(min) < 0 || target.CompareTo(max) > 0)
         {
-            return Result.Failure<Range<T>>($"Target value {target} must be within range [{min}, {max}]");
+            return Result.Failure<Range<T>>(
+                $"Target value {target} must be within range [{min}, {max}]"
+            );
         }
 
         return Result.Success(new Range<T>(min, max, Maybe<T>.From(target)));
     }
-    
+
     /// <summary>
     /// Determines whether a value falls within this range (inclusive).
     /// </summary>
@@ -136,9 +146,8 @@ public sealed record Range<T> where T : IComparable<T>
     /// Console.WriteLine(range.Contains(1));  // true (inclusive)
     /// </code>
     /// </example>
-    public bool Contains(T value) => 
-        value.CompareTo(Min) >= 0 && value.CompareTo(Max) <= 0;
-    
+    public bool Contains(T value) => value.CompareTo(Min) >= 0 && value.CompareTo(Max) <= 0;
+
     /// <summary>
     /// Gets the target value if specified, or calculates a midpoint using the provided function.
     /// </summary>
@@ -160,7 +169,7 @@ public sealed record Range<T> where T : IComparable<T>
     {
         return Target.GetValueOrDefault(() => midpointCalculator(Min, Max));
     }
-    
+
     /// <summary>
     /// Calculates the normalized deviation of a value from this range.
     /// </summary>
@@ -194,7 +203,7 @@ public sealed record Range<T> where T : IComparable<T>
         var floatValue = toFloat(value);
         var floatMin = toFloat(Min);
         var floatMax = toFloat(Max);
-        
+
         if (floatValue < floatMin)
         {
             return (floatMin - floatValue) / Math.Max(floatMin, 0.001f);
@@ -204,7 +213,7 @@ public sealed record Range<T> where T : IComparable<T>
             return (floatValue - floatMax) / Math.Max(floatMax, 0.001f);
         }
     }
-    
+
     /// <summary>
     /// Restricts a value to be within the bounds of this range.
     /// </summary>
@@ -233,17 +242,15 @@ public sealed record Range<T> where T : IComparable<T>
         }
         return value;
     }
-    
+
     /// <summary>
     /// Returns a string representation of the range.
     /// </summary>
     /// <returns>
     /// A string in the format "[min, max]" or "[min, max] (target: value)" if a target is specified.
     /// </returns>
-    public override string ToString() => 
-        Target.HasValue 
-            ? $"[{Min}, {Max}] (target: {Target.Value})"
-            : $"[{Min}, {Max}]";
+    public override string ToString() =>
+        Target.HasValue ? $"[{Min}, {Max}] (target: {Target.Value})" : $"[{Min}, {Max}]";
 }
 
 /// <summary>
@@ -253,6 +260,7 @@ public sealed record Range<T> where T : IComparable<T>
 /// These extensions are particularly useful for float ranges, providing syntactic sugar
 /// for common operations and tuple-based initialization.
 /// </remarks>
+[PublicAPI]
 public static class RangeExtensions
 {
     /// <summary>
@@ -272,7 +280,7 @@ public static class RangeExtensions
         var result = Range<float>.Create(tuple.min, tuple.max);
         return result.IsSuccess ? result.Value : throw new ArgumentException(result.Error);
     }
-    
+
     /// <summary>
     /// Creates a <see cref="Range{T}"/> of float from a tuple of min, max, and target values.
     /// </summary>
@@ -292,7 +300,7 @@ public static class RangeExtensions
         var result = Range<float>.Create(tuple.min, tuple.max, tuple.target);
         return result.IsSuccess ? result.Value : throw new ArgumentException(result.Error);
     }
-    
+
     /// <summary>
     /// Calculates the midpoint of a float range.
     /// </summary>
@@ -308,7 +316,7 @@ public static class RangeExtensions
     /// <code>
     /// var range1 = (0.0f, 10.0f).ToRange();
     /// float mid1 = range1.GetMidpoint(); // 5.0f
-    /// 
+    ///
     /// var range2 = (0.0f, 10.0f, 7.0f).ToRange();
     /// float mid2 = range2.GetMidpoint(); // 7.0f (returns target)
     /// </code>

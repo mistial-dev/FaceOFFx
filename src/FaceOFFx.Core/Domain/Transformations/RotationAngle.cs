@@ -9,14 +9,14 @@ public sealed record RotationAngle
     /// Gets the rotation angle in degrees (normalized to -180 to 180)
     /// </summary>
     public float Degrees { get; }
-    
+
     /// <summary>
     /// Rotation in radians
     /// </summary>
     public float Radians => Degrees * (float)(Math.PI / 180.0);
-    
+
     private RotationAngle(float degrees) => Degrees = degrees;
-    
+
     /// <summary>
     /// Creates a rotation angle from degrees
     /// </summary>
@@ -45,7 +45,7 @@ public sealed record RotationAngle
 
         return Result.Success(new RotationAngle(normalized));
     }
-    
+
     /// <summary>
     /// Creates rotation from radians
     /// </summary>
@@ -54,25 +54,24 @@ public sealed record RotationAngle
         var degrees = radians * (float)(180.0 / Math.PI);
         return Create(degrees);
     }
-    
+
     /// <summary>
     /// No rotation
     /// </summary>
     public static RotationAngle Zero => new(0f);
-    
+
     /// <summary>
     /// Whether this represents actual rotation
     /// </summary>
     public bool IsSignificant => Math.Abs(Degrees) > 0.1f;
-    
+
     /// <summary>
     /// Gets the opposite rotation
     /// </summary>
     public RotationAngle Inverse => new(-Degrees);
-    
+
     /// <summary>
     /// Combines two rotations
     /// </summary>
-    public Result<RotationAngle> Combine(RotationAngle other) => 
-        Create(Degrees + other.Degrees);
+    public Result<RotationAngle> Combine(RotationAngle other) => Create(Degrees + other.Degrees);
 }

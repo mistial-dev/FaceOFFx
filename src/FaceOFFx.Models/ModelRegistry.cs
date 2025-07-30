@@ -24,7 +24,11 @@ public static class ModelRegistry
     public static byte[] GetModel(string modelName)
     {
         var assembly = typeof(ModelRegistry).Assembly;
-        using var stream = assembly.GetManifestResourceStream(modelName) ?? throw new InvalidOperationException($"Model {modelName} not found in embedded resources");
+        using var stream =
+            assembly.GetManifestResourceStream(modelName)
+            ?? throw new InvalidOperationException(
+                $"Model {modelName} not found in embedded resources"
+            );
 
         using var memoryStream = new MemoryStream();
         stream.CopyTo(memoryStream);

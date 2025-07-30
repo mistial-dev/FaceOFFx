@@ -12,11 +12,11 @@ namespace FaceOFFx.Core.Domain.Common;
 /// <code>
 /// // Create a new face ID
 /// var faceId = FaceId.New();
-/// 
+///
 /// // Create from existing GUID
 /// var guid = Guid.NewGuid();
 /// var faceIdFromGuid = FaceId.From(guid);
-/// 
+///
 /// // Display shortened version
 /// Console.WriteLine(faceId); // Output: "a1b2c3d4" (first 8 characters)
 /// </code>
@@ -47,7 +47,7 @@ public record FaceId
     /// faces for the first time.
     /// </remarks>
     public static FaceId New() => new(Guid.NewGuid());
-    
+
     /// <summary>
     /// Creates a <see cref="FaceId"/> from an existing GUID value.
     /// </summary>

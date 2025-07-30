@@ -1,6 +1,6 @@
-using FaceOFFx.Core.Domain.Common;
 using AwesomeAssertions;
 using CSharpFunctionalExtensions;
+using FaceOFFx.Core.Domain.Common;
 using NUnit.Framework;
 
 namespace FaceOFFx.Core.Tests.Domain.Common;
@@ -16,7 +16,7 @@ namespace FaceOFFx.Core.Tests.Domain.Common;
 public class RangeTests
 {
     /// <summary>
-    /// Tests the creation of a valid range using the <see cref="Range{T}.Create"/> method.
+    /// Tests the creation of a valid range using the <see cref="Range{T}.Create(T, T)"/> method.
     /// Ensures that the method returns a successful result, correctly initializes the minimum and maximum values,
     /// and leaves the optional target value unset.
     /// </summary>
@@ -170,7 +170,7 @@ public class RangeTests
     }
 
     /// <summary>
-    /// Ensures the correct functionality of the <see cref="GetTargetOrMidpoint"/> method
+    /// Ensures the correct functionality of the <see cref="Range{T}.GetTargetOrMidpoint"/> method
     /// when no target value is provided. This test verifies that the method calculates
     /// the midpoint of the range using the given midpoint calculation logic.
     /// </summary>
@@ -332,7 +332,7 @@ public class RangeTests
 
     /// <summary>
     /// Validates the creation of a <see cref="Range{T}"/> object from a tuple containing
-    /// minimum, maximum, and target values using the <see cref="RangeExtensions.ToRange"/> extension method.
+    /// minimum, maximum, and target values using the <see cref="RangeExtensions.ToRange(ValueTuple{float, float, float})"/> extension method.
     /// Asserts that the resulting range is correctly constructed, and the target value is set and matches the input tuple target.
     /// </summary>
     /// <remarks>

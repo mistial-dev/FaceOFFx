@@ -18,9 +18,10 @@ public sealed class OnnxModelSession : IDisposable
     public OnnxModelSession(byte[] modelData, string modelName, SessionOptions? options = null)
     {
         _modelName = modelName;
-        _session = options != null
-            ? new InferenceSession(modelData, options)
-            : new InferenceSession(modelData);
+        _session =
+            options != null
+                ? new InferenceSession(modelData, options)
+                : new InferenceSession(modelData);
     }
 
     /// <summary>

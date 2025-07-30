@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
     <PackageReference Include="NUnit" Version="4.0.1" />
@@ -17,17 +15,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\FaceOFFx.Core\FaceOFFx.Core.csproj" />
     <ProjectReference Include="..\FaceOFFx.Tests.Common\FaceOFFx.Tests.Common.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="TestData\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 </Project>

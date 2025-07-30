@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace FaceOFFx.Core.Domain.Detection;
 
 /// <summary>
@@ -15,14 +17,19 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// <code>
 /// var faceBox = FaceBox.Create(100, 150, 200, 250).Value;
 /// var detectedFace = new DetectedFace(faceBox, 0.95f);
-/// 
+///
 /// if (detectedFace.IsValid)
 /// {
 ///     Console.WriteLine($"Valid face detected with {detectedFace.Confidence:P0} confidence");
 /// }
 /// </code>
 /// </example>
-public record DetectedFace(FaceBox BoundingBox, float Confidence, Maybe<FaceLandmarks5> Landmarks5 = default)
+[PublicAPI]
+public record DetectedFace(
+    FaceBox BoundingBox,
+    float Confidence,
+    Maybe<FaceLandmarks5> Landmarks5 = default
+)
 {
     /// <summary>
     /// Determines whether this detected face is valid for further processing.

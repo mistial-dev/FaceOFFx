@@ -1,11 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Description>Core domain models and abstractions for FaceOFFx facial recognition library</Description>
   </PropertyGroup>
-
-
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
@@ -16,9 +13,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="FaceOFFx.Core.Tests" />
   </ItemGroup>
-
 </Project>

@@ -1,5 +1,5 @@
-using FaceOFFx.Core.Domain.Common;
 using AwesomeAssertions;
+using FaceOFFx.Core.Domain.Common;
 using NUnit.Framework;
 
 namespace FaceOFFx.Core.Tests.Domain.Common;
@@ -49,7 +49,13 @@ public class Point2DTests
     [TestCase(1, 1, 4, 5, 5)]
     [TestCase(10, 10, 10, 10, 0)]
     [TestCase(-5, -5, 5, 5, 14.142136f)]
-    public void DistanceTo_ShouldCalculateCorrectly(float x1, float y1, float x2, float y2, float expectedDistance)
+    public void DistanceTo_ShouldCalculateCorrectly(
+        float x1,
+        float y1,
+        float x2,
+        float y2,
+        float expectedDistance
+    )
     {
         var point1 = new Point2D(x1, y1);
         var point2 = new Point2D(x2, y2);

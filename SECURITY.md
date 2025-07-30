@@ -5,7 +5,7 @@
 We release patches for security vulnerabilities. Which versions are eligible for receiving such patches depends on the CVSS v3.0 Rating:
 
 | Version | Supported          |
-| ------- | ------------------ |
+|---------|--------------------|
 | 1.x.x   | :white_check_mark: |
 | < 1.0   | :x:                |
 
@@ -18,7 +18,8 @@ We take the security of FaceOFFx seriously. If you have discovered a security vu
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Instead, please report them via email to:
-- security@mistial.dev
+
+- <security@mistial.dev>
 
 You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
 

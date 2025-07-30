@@ -11,14 +11,16 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// <param name="BoundingBox">The rectangular bounds of this ROI in image coordinates.</param>
 /// <param name="LandmarkIndices">The indices of the 68-point landmarks included in this ROI.</param>
 /// <remarks>
-/// ROIs are used in JPEG 2000 encoding to allocate different compression levels to different
-/// facial regions based on their importance for recognition and analysis tasks.
+/// ROI is used in JPEG 2000 encoding to allocate higher compression quality to the
+/// facial region based on its importance for recognition and analysis tasks.
 /// </remarks>
+[PublicAPI]
 public record RoiRegion(
     string Name,
     int Priority,
     RoiBoundingBox BoundingBox,
-    IReadOnlyList<int> LandmarkIndices)
+    IReadOnlyList<int> LandmarkIndices
+)
 {
     /// <summary>
     /// Validates that this ROI region has valid properties.
@@ -26,14 +28,13 @@ public record RoiRegion(
     /// <returns>A Result indicating success or containing validation errors.</returns>
     public Result Validate()
     {
-        return string.IsNullOrWhiteSpace(Name)
-            ? Result.Failure("ROI name cannot be empty")
+        return string.IsNullOrWhiteSpace(Name) ? Result.Failure("ROI name cannot be empty")
             : Priority is < 1 or > 3
-            ? Result.Failure($"ROI priority must be between 1 and 3, got {Priority}")
-            : LandmarkIndices.Count == 0
-            ? Result.Failure("ROI must include at least one landmark")
-            : LandmarkIndices.Any(static i => i is < 0 or > 67) ? Result.Failure("Landmark indices must be between 0 and 67") : BoundingBox.Validate();
-
+                ? Result.Failure($"ROI priority must be between 1 and 3, got {Priority}")
+            : LandmarkIndices.Count == 0 ? Result.Failure("ROI must include at least one landmark")
+            : LandmarkIndices.Any(static i => i is < 0 or > 67)
+                ? Result.Failure("Landmark indices must be between 0 and 67")
+            : BoundingBox.Validate();
     }
 }
 
@@ -44,6 +45,7 @@ public record RoiRegion(
 /// <param name="Y">The Y coordinate of the top edge.</param>
 /// <param name="Width">The width of the bounding box.</param>
 /// <param name="Height">The height of the bounding box.</param>
+[PublicAPI]
 public record RoiBoundingBox(int X, int Y, int Width, int Height)
 {
     /// <summary>
@@ -52,10 +54,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
     [PublicAPI]
     public int Right
     {
-        get
-        {
-            return X + Width;
-        }
+        get { return X + Width; }
     }
 
     /// <summary>
@@ -64,10 +63,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
     [PublicAPI]
     public int Bottom
     {
-        get
-        {
-            return Y + Height;
-        }
+        get { return Y + Height; }
     }
 
     /// <summary>
@@ -76,10 +72,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
     [PublicAPI]
     public Point2D Center
     {
-        get
-        {
-            return new Point2D(X + Width / 2f, Y + Height / 2f);
-        }
+        get { return new Point2D(X + Width / 2f, Y + Height / 2f); }
     }
 
     /// <summary>
@@ -87,10 +80,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
     /// </summary>
     public int Area
     {
-        get
-        {
-            return Width * Height;
-        }
+        get { return Width * Height; }
     }
 
     /// <summary>
@@ -99,8 +89,10 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
     public Result Validate()
     {
         return X < 0 || Y < 0
-            ? Result.Failure($"Bounding box coordinates must be non-negative: ({X}, {Y})")
-            : Width <= 0 || Height <= 0 ? Result.Failure($"Bounding box dimensions must be positive: {Width}x{Height}") : Result.Success();
+                ? Result.Failure($"Bounding box coordinates must be non-negative: ({X}, {Y})")
+            : Width <= 0 || Height <= 0
+                ? Result.Failure($"Bounding box dimensions must be positive: {Width}x{Height}")
+            : Result.Success();
     }
 
     /// <summary>
@@ -120,12 +112,7 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
         var newRight = Math.Min(imageWidth, Right + marginX);
         var newBottom = Math.Min(imageHeight, Bottom + marginY);
 
-        return new RoiBoundingBox(
-            newX,
-            newY,
-            newRight - newX,
-            newBottom - newY
-        );
+        return new RoiBoundingBox(newX, newY, newRight - newX, newBottom - newY);
     }
 }
 
@@ -139,10 +126,11 @@ public record RoiBoundingBox(int X, int Y, int Width, int Height)
 /// - Outer Region: Everything outside Inner Region gets lower quality (handled by encoder)
 /// This approach provides consistent, standards-compliant ROI behavior.
 /// </remarks>
+[PublicAPI]
 public record FacialRoiSet(RoiRegion InnerRegion)
 {
     /// <summary>
-    /// Gets all ROI regions (just the Inner Region for Appendix C.6).
+    /// Gets the ROI Inner Region (single region for Appendix C.6).
     /// </summary>
     public IReadOnlyList<RoiRegion> AllRegions => [InnerRegion];
 
@@ -152,7 +140,7 @@ public record FacialRoiSet(RoiRegion InnerRegion)
     public Result Validate()
     {
         var validation = InnerRegion.Validate();
-        return validation.IsFailure 
+        return validation.IsFailure
             ? Result.Failure($"Inner Region validation failed: {validation.Error}")
             : Result.Success();
     }
@@ -169,9 +157,7 @@ public record FacialRoiSet(RoiRegion InnerRegion)
     /// For standard PIV (420×560): Inner Region at (41, 41) to (377, 461)
     /// The Outer Region (everything else) gets lower quality automatically by the encoder.
     /// </remarks>
-    public static Result<FacialRoiSet> CreateAppendixC6(
-        int imageWidth,
-        int imageHeight)
+    public static Result<FacialRoiSet> CreateAppendixC6(int imageWidth, int imageHeight)
     {
         try
         {
@@ -182,30 +168,34 @@ public record FacialRoiSet(RoiRegion InnerRegion)
             var innerRegionMaxX = (int)(0.9f * imageWidth - 1);
             var innerRegionMaxY = (int)(1.1f * imageWidth - 1);
             var innerRegionWidth = innerRegionMaxX - innerRegionX + 1;
-            var innerRegionHeight = Math.Min(innerRegionMaxY - innerRegionY + 1, imageHeight - innerRegionY);
-            
+            var innerRegionHeight = Math.Min(
+                innerRegionMaxY - innerRegionY + 1,
+                imageHeight - innerRegionY
+            );
+
             // Ensure Inner Region stays within image bounds
             innerRegionHeight = Math.Min(innerRegionHeight, imageHeight - innerRegionY);
-            
+
             var innerRegionBox = new RoiBoundingBox(
                 innerRegionX,
                 innerRegionY,
                 innerRegionWidth,
                 innerRegionHeight
             );
-            
+
             // All 68 landmark indices are included in the Inner Region for visualization
             var allLandmarkIndices = Enumerable.Range(0, 68).ToList();
-            
+
             var innerRegion = new RoiRegion("Inner", 3, innerRegionBox, allLandmarkIndices);
             var roiSet = new FacialRoiSet(innerRegion);
-            
+
             return roiSet.Validate().Map(() => roiSet);
         }
         catch (Exception ex)
         {
-            return Result.Failure<FacialRoiSet>($"Failed to create Appendix C.6 ROI set: {ex.Message}");
+            return Result.Failure<FacialRoiSet>(
+                $"Failed to create Appendix C.6 ROI set: {ex.Message}"
+            );
         }
     }
-
 }

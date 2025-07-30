@@ -1,4 +1,5 @@
 using FaceOFFx.Core.Domain.Common;
+using JetBrains.Annotations;
 
 namespace FaceOFFx.Core.Domain.Standards;
 
@@ -15,6 +16,7 @@ namespace FaceOFFx.Core.Domain.Standards;
 /// <param name="RightEyeCenter">Center of right eye (landmarks 42-47)</param>
 /// <param name="LeftEarPoint">Level-adjusted leftmost face contour point</param>
 /// <param name="RightEarPoint">Level-adjusted rightmost face contour point</param>
+[PublicAPI]
 public record PivComplianceLines(
     float LineAA_X,
     float LineBB_Y,
@@ -24,30 +26,34 @@ public record PivComplianceLines(
     Point2D LeftEyeCenter,
     Point2D RightEyeCenter,
     Point2D LeftEarPoint,
-    Point2D RightEarPoint)
+    Point2D RightEarPoint
+)
 {
     /// <summary>
     /// Gets the horizontal eye line as a geometric line for visualization.
     /// </summary>
     public Line HorizontalEyeLine => new(new Point2D(0, LineBB_Y), new Point2D(1000, LineBB_Y));
-    
+
     /// <summary>
     /// Gets the vertical center line as a geometric line for visualization.
     /// </summary>
     public Line VerticalCenterLine => new(new Point2D(LineAA_X, 0), new Point2D(LineAA_X, 1000));
-    
+
     /// <summary>
     /// Gets the head width line connecting the ear points.
     /// </summary>
     public Line HeadWidthLine => new(LeftEarPoint, RightEarPoint);
-    
+
     /// <summary>
     /// Gets the inter-pupillary distance (eye-to-eye distance).
     /// </summary>
-    public float InterPupillaryDistance => 
-        (float)Math.Sqrt(Math.Pow(RightEyeCenter.X - LeftEyeCenter.X, 2) + 
-                        Math.Pow(RightEyeCenter.Y - LeftEyeCenter.Y, 2));
-    
+    public float InterPupillaryDistance =>
+        (float)
+            Math.Sqrt(
+                Math.Pow(RightEyeCenter.X - LeftEyeCenter.X, 2)
+                    + Math.Pow(RightEyeCenter.Y - LeftEyeCenter.Y, 2)
+            );
+
     /// <summary>
     /// Checks if the nose and mouth centers are reasonably aligned (within tolerance).
     /// </summary>
@@ -57,7 +63,7 @@ public record PivComplianceLines(
     {
         return Math.Abs(NoseCenter.X - MouthCenter.X) <= tolerance;
     }
-    
+
     /// <summary>
     /// Gets the deviation of the face center line from the image center.
     /// </summary>
@@ -68,7 +74,7 @@ public record PivComplianceLines(
         var imageCenterX = imageWidth / 2.0f;
         return LineAA_X - imageCenterX;
     }
-    
+
     /// <summary>
     /// Calculates what percentage from the bottom edge the eye line is positioned.
     /// </summary>
@@ -78,7 +84,7 @@ public record PivComplianceLines(
     {
         return (imageHeight - LineBB_Y) / imageHeight;
     }
-    
+
     /// <summary>
     /// Calculates the current image width to head width ratio.
     /// </summary>
@@ -95,18 +101,20 @@ public record PivComplianceLines(
 /// </summary>
 /// <param name="Start">Starting point of the line</param>
 /// <param name="End">Ending point of the line</param>
+[PublicAPI]
 public record Line(Point2D Start, Point2D End)
 {
     /// <summary>
     /// Gets the length of the line.
     /// </summary>
-    public float Length => (float)Math.Sqrt(Math.Pow(End.X - Start.X, 2) + Math.Pow(End.Y - Start.Y, 2));
-    
+    public float Length =>
+        (float)Math.Sqrt(Math.Pow(End.X - Start.X, 2) + Math.Pow(End.Y - Start.Y, 2));
+
     /// <summary>
     /// Gets the midpoint of the line.
     /// </summary>
     public Point2D Midpoint => new((Start.X + End.X) / 2, (Start.Y + End.Y) / 2);
-    
+
     /// <summary>
     /// Checks if the line is approximately horizontal (within angle tolerance).
     /// </summary>
@@ -117,7 +125,7 @@ public record Line(Point2D Start, Point2D End)
         var angle = Math.Abs(Math.Atan2(End.Y - Start.Y, End.X - Start.X) * 180 / Math.PI);
         return angle <= angleTolerance || angle >= (180 - angleTolerance);
     }
-    
+
     /// <summary>
     /// Checks if the line is approximately vertical (within angle tolerance).
     /// </summary>

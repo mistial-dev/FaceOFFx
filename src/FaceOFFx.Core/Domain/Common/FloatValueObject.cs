@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace FaceOFFx.Core.Domain.Common;
 
 /// <summary>
@@ -13,16 +15,17 @@ namespace FaceOFFx.Core.Domain.Common;
 /// public record Temperature : FloatValueObject
 /// {
 ///     private Temperature(float value) : base(value) { }
-///     
+///
 ///     public static Result&lt;Temperature&gt; Create(float value)
 ///     {
-///         return Create(value, 
+///         return Create(value,
 ///             v => ValidateRange(v, -273.15f, 1000f, "Temperature"),
 ///             v => new Temperature(v));
 ///     }
 /// }
 /// </code>
 /// </example>
+[PublicAPI]
 public abstract record FloatValueObject
 {
     /// <summary>
@@ -30,7 +33,7 @@ public abstract record FloatValueObject
     /// </summary>
     /// <value>The underlying float value that this object represents.</value>
     public float Value { get; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="FloatValueObject"/> class.
     /// </summary>
@@ -40,7 +43,7 @@ public abstract record FloatValueObject
     /// ensuring proper validation before object creation.
     /// </remarks>
     protected FloatValueObject(float value) => Value = value;
-    
+
     /// <summary>
     /// Factory method for creating validated instances of float value objects.
     /// </summary>
@@ -57,17 +60,18 @@ public abstract record FloatValueObject
     /// their validation rules while reusing the creation logic.
     /// </remarks>
     protected static Result<T> Create<T>(
-        float value, 
-        Func<float, Result> validate, 
-        Func<float, T> factory)
+        float value,
+        Func<float, Result> validate,
+        Func<float, T> factory
+    )
         where T : FloatValueObject
     {
         var validation = validate(value);
-        return validation.IsSuccess 
+        return validation.IsSuccess
             ? Result.Success(factory(value))
             : Result.Failure<T>(validation.Error);
     }
-    
+
     /// <summary>
     /// Validates that a value is non-negative (greater than or equal to zero).
     /// </summary>
@@ -87,7 +91,7 @@ public abstract record FloatValueObject
             ? Result.Success()
             : Result.Failure($"{valueName} must be non-negative, was {value}");
     }
-    
+
     /// <summary>
     /// Validates that a value is strictly positive (greater than zero).
     /// </summary>
@@ -107,7 +111,7 @@ public abstract record FloatValueObject
             ? Result.Success()
             : Result.Failure($"{valueName} must be positive, was {value}");
     }
-    
+
     /// <summary>
     /// Validates that a value falls within a specified inclusive range.
     /// </summary>
@@ -129,7 +133,7 @@ public abstract record FloatValueObject
             ? Result.Success()
             : Result.Failure($"{valueName} must be between {min} and {max}, was {value}");
     }
-    
+
     /// <summary>
     /// Provides implicit conversion from <see cref="FloatValueObject"/> to <see cref="float"/>.
     /// </summary>
@@ -141,7 +145,7 @@ public abstract record FloatValueObject
     /// during object creation.
     /// </remarks>
     public static implicit operator float(FloatValueObject value) => value.Value;
-    
+
     /// <summary>
     /// Returns a string representation of the value object.
     /// </summary>
@@ -163,7 +167,7 @@ public abstract record FloatValueObject
 /// public record SuccessRate : PercentageValue
 /// {
 ///     private SuccessRate(float value) : base(value) { }
-///     
+///
 ///     public static Result&lt;SuccessRate&gt; Create(float value)
 ///     {
 ///         return Create(value,
@@ -171,13 +175,14 @@ public abstract record FloatValueObject
 ///             v => new SuccessRate(v));
 ///     }
 /// }
-/// 
+///
 /// // Usage
 /// var rate = SuccessRate.Create(0.85f).Value;
 /// Console.WriteLine($"Success: {rate}"); // Output: "Success: 85.0%"
 /// Console.WriteLine($"Ratio: {rate.Value}"); // Output: "Ratio: 0.85"
 /// </code>
 /// </example>
+[PublicAPI]
 public abstract record PercentageValue : FloatValueObject
 {
     /// <summary>
@@ -188,13 +193,14 @@ public abstract record PercentageValue : FloatValueObject
     /// For example, an internal value of 0.75 returns 75.0.
     /// </value>
     public float Percentage => Value * 100;
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PercentageValue"/> class.
     /// </summary>
     /// <param name="value">The percentage value as a ratio between 0.0 and 1.0.</param>
-    protected PercentageValue(float value) : base(value) { }
-    
+    protected PercentageValue(float value)
+        : base(value) { }
+
     /// <summary>
     /// Validates that a value is a valid percentage ratio (0.0 to 1.0 inclusive).
     /// </summary>
@@ -212,7 +218,7 @@ public abstract record PercentageValue : FloatValueObject
     {
         return ValidateRange(value, 0f, 1f, valueName);
     }
-    
+
     /// <summary>
     /// Returns a string representation of the percentage value.
     /// </summary>
@@ -233,7 +239,7 @@ public abstract record PercentageValue : FloatValueObject
 /// public record AspectRatio : RatioValue
 /// {
 ///     private AspectRatio(float value) : base(value) { }
-///     
+///
 ///     public static Result&lt;AspectRatio&gt; Create(float width, float height)
 ///     {
 ///         var ratio = width / height;
@@ -242,20 +248,22 @@ public abstract record PercentageValue : FloatValueObject
 ///             v => new AspectRatio(v));
 ///     }
 /// }
-/// 
+///
 /// // Usage
 /// var ratio = AspectRatio.Create(16, 9).Value;
 /// Console.WriteLine(ratio); // Output: "1.78:1"
 /// </code>
 /// </example>
+[PublicAPI]
 public abstract record RatioValue : FloatValueObject
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="RatioValue"/> class.
     /// </summary>
     /// <param name="value">The ratio value, which must be positive.</param>
-    protected RatioValue(float value) : base(value) { }
-    
+    protected RatioValue(float value)
+        : base(value) { }
+
     /// <summary>
     /// Validates that a value is a valid ratio (strictly positive).
     /// </summary>
@@ -273,7 +281,7 @@ public abstract record RatioValue : FloatValueObject
     {
         return ValidatePositive(value, valueName);
     }
-    
+
     /// <summary>
     /// Returns a string representation of the ratio value.
     /// </summary>

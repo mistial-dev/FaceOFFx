@@ -12,14 +12,14 @@ public static class PivJpeg2000Encoder
     public static async Task<Result<byte[]>> EncodeAsync(
         PivLandmarkResult result,
         float baseRate = 1.2f,
-        int roiStartLevel = 1)
+        int roiStartLevel = 1
+    )
     {
         try
         {
             // Use the clean PIV image without any visualization
             var pivImage = result.PivImage;
             var roiSet = result.RoiSet;
-
 
             // The actual encoding will be done by infrastructure service
             // This is just a domain-level coordinator

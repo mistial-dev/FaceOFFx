@@ -14,7 +14,7 @@ namespace FaceOFFx.Core.Domain.Recognition;
 /// // Create a face embedding from a model output
 /// float[] modelOutput = faceRecognitionModel.Forward(faceImage);
 /// var embeddingResult = FaceEmbedding.Create(modelOutput);
-/// 
+///
 /// if (embeddingResult.IsSuccess)
 /// {
 ///     var embedding = embeddingResult.Value;
@@ -34,7 +34,7 @@ public record FaceEmbedding
     /// All values are normalized such that the vector has unit length.
     /// </value>
     public IReadOnlyList<float> Vector => _vector;
-    
+
     /// <summary>
     /// Gets the number of dimensions in the embedding vector.
     /// </summary>
@@ -69,7 +69,7 @@ public record FaceEmbedding
     /// <code>
     /// float[] features = new float[128];
     /// // ... populate features from model ...
-    /// 
+    ///
     /// var result = FaceEmbedding.Create(features);
     /// result.Match(
     ///     success: embedding => Console.WriteLine("Embedding created successfully"),
@@ -86,7 +86,9 @@ public record FaceEmbedding
 
         if (vector.Length != 128 && vector.Length != 256 && vector.Length != 512)
         {
-            return Result.Failure<FaceEmbedding>($"Embedding vector must be 128, 256, or 512 dimensions, but was {vector.Length}");
+            return Result.Failure<FaceEmbedding>(
+                $"Embedding vector must be 128, 256, or 512 dimensions, but was {vector.Length}"
+            );
         }
 
         // Normalize the vector
@@ -133,7 +135,7 @@ public record FaceEmbedding
     /// <code>
     /// var embedding1 = FaceEmbedding.Create(face1Features).Value;
     /// var embedding2 = FaceEmbedding.Create(face2Features).Value;
-    /// 
+    ///
     /// float similarity = embedding1.CosineSimilarity(embedding2);
     /// if (similarity > 0.85f)
     /// {
@@ -145,7 +147,9 @@ public record FaceEmbedding
     {
         if (Dimensions != other.Dimensions)
         {
-            throw new ArgumentException($"Cannot compare embeddings of different dimensions: {Dimensions} vs {other.Dimensions}");
+            throw new ArgumentException(
+                $"Cannot compare embeddings of different dimensions: {Dimensions} vs {other.Dimensions}"
+            );
         }
 
         var dotProduct = 0f;
@@ -191,9 +195,9 @@ public record FaceEmbedding
     /// <code>
     /// var embedding1 = FaceEmbedding.Create(face1Features).Value;
     /// var embedding2 = FaceEmbedding.Create(face2Features).Value;
-    /// 
+    ///
     /// float distance = embedding1.EuclideanDistance(embedding2);
-/// if (distance &lt; 0.6f)
+    /// if (distance &lt; 0.6f)
     /// {
     ///     Console.WriteLine($"Faces are similar (distance: {distance:F3})");
     /// }
@@ -203,7 +207,9 @@ public record FaceEmbedding
     {
         if (Dimensions != other.Dimensions)
         {
-            throw new ArgumentException($"Cannot compare embeddings of different dimensions: {Dimensions} vs {other.Dimensions}");
+            throw new ArgumentException(
+                $"Cannot compare embeddings of different dimensions: {Dimensions} vs {other.Dimensions}"
+            );
         }
 
         var sum = 0f;

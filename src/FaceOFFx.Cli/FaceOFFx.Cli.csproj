@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,12 +6,10 @@
     <!-- Only enable PublishSingleFile when actually publishing -->
     <PublishSingleFile Condition="'$(RuntimeIdentifier)' != ''">true</PublishSingleFile>
     <SelfContained>false</SelfContained>
-    
     <!-- .NET Tool Configuration -->
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>faceoffx</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
-    
     <!-- NuGet Package Metadata -->
     <PackageId>FaceOFFx.Cli</PackageId>
     <Version>1.0.1</Version>
@@ -28,36 +25,36 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <Copyright>Copyright © 2024 FaceOFFx Contributors</Copyright>
-    
     <!-- Include models and dependencies in the tool package -->
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>true</IncludeBuildOutput>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\FaceOFFx.Core\FaceOFFx.Core.csproj" />
     <ProjectReference Include="..\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj" />
     <ProjectReference Include="..\FaceOFFx.Models\FaceOFFx.Models.csproj" />
   </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
-    <PackageReference Include="Spectre.Console.Cli.Extensions.DependencyInjection" Version="0.10.1-preview.0.1" />
+    <PackageReference
+      Include="Spectre.Console.Cli.Extensions.DependencyInjection"
+      Version="0.10.1-preview.0.1"
+    />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.7" />
+    <PackageReference
+      Include="Microsoft.Extensions.Configuration.EnvironmentVariables"
+      Version="9.0.7"
+    />
     <PackageReference Update="PolySharp" Version="1.15.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-
 </Project>

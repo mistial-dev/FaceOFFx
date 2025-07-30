@@ -3316,9 +3316,7 @@
     },
     {
       "ref": "pkg:nuget/Castle.Core@5.1.1",
-      "dependsOn": [
-        "pkg:nuget/System.Diagnostics.EventLog@6.0.0"
-      ]
+      "dependsOn": ["pkg:nuget/System.Diagnostics.EventLog@6.0.0"]
     },
     {
       "ref": "pkg:nuget/CoreJ2K.ImageSharp@1.0.1",
@@ -3357,9 +3355,7 @@
     },
     {
       "ref": "pkg:nuget/Microsoft.Extensions.Configuration.Abstractions@9.0.7",
-      "dependsOn": [
-        "pkg:nuget/Microsoft.Extensions.Primitives@9.0.7"
-      ]
+      "dependsOn": ["pkg:nuget/Microsoft.Extensions.Primitives@9.0.7"]
     },
     {
       "ref": "pkg:nuget/Microsoft.Extensions.Configuration.Binder@9.0.7",
@@ -3445,9 +3441,7 @@
     },
     {
       "ref": "pkg:nuget/Microsoft.Extensions.FileProviders.Abstractions@9.0.7",
-      "dependsOn": [
-        "pkg:nuget/Microsoft.Extensions.Primitives@9.0.7"
-      ]
+      "dependsOn": ["pkg:nuget/Microsoft.Extensions.Primitives@9.0.7"]
     },
     {
       "ref": "pkg:nuget/Microsoft.Extensions.FileProviders.Physical@9.0.7",
@@ -3589,15 +3583,11 @@
     },
     {
       "ref": "pkg:nuget/Microsoft.ML.OnnxRuntime.Managed@1.20.1",
-      "dependsOn": [
-        "pkg:nuget/System.Memory@4.5.5"
-      ]
+      "dependsOn": ["pkg:nuget/System.Memory@4.5.5"]
     },
     {
       "ref": "pkg:nuget/Microsoft.ML.OnnxRuntime@1.20.1",
-      "dependsOn": [
-        "pkg:nuget/Microsoft.ML.OnnxRuntime.Managed@1.20.1"
-      ]
+      "dependsOn": ["pkg:nuget/Microsoft.ML.OnnxRuntime.Managed@1.20.1"]
     },
     {
       "ref": "pkg:nuget/Microsoft.NET.Test.Sdk@17.8.0",
@@ -3630,9 +3620,7 @@
     },
     {
       "ref": "pkg:nuget/NSubstitute@5.1.0",
-      "dependsOn": [
-        "pkg:nuget/Castle.Core@5.1.1"
-      ]
+      "dependsOn": ["pkg:nuget/Castle.Core@5.1.1"]
     },
     {
       "ref": "pkg:nuget/NuGet.Frameworks@6.5.0",
@@ -3724,15 +3712,11 @@
     },
     {
       "ref": "pkg:nuget/Spectre.Console.Cli@0.50.0",
-      "dependsOn": [
-        "pkg:nuget/Spectre.Console@0.50.0"
-      ]
+      "dependsOn": ["pkg:nuget/Spectre.Console@0.50.0"]
     },
     {
       "ref": "pkg:nuget/Spectre.Console@0.50.0",
-      "dependsOn": [
-        "pkg:nuget/System.Memory@4.6.3"
-      ]
+      "dependsOn": ["pkg:nuget/System.Memory@4.6.3"]
     },
     {
       "ref": "pkg:nuget/System.Diagnostics.DiagnosticSource@9.0.7",
@@ -3809,15 +3793,11 @@
     },
     {
       "ref": "pkg:nuget/xunit.extensibility.core@2.6.6",
-      "dependsOn": [
-        "pkg:nuget/xunit.abstractions@2.0.3"
-      ]
+      "dependsOn": ["pkg:nuget/xunit.abstractions@2.0.3"]
     },
     {
       "ref": "pkg:nuget/xunit.extensibility.execution@2.6.6",
-      "dependsOn": [
-        "pkg:nuget/xunit.extensibility.core@2.6.6"
-      ]
+      "dependsOn": ["pkg:nuget/xunit.extensibility.core@2.6.6"]
     },
     {
       "ref": "pkg:nuget/xunit.runner.visualstudio@2.5.6",

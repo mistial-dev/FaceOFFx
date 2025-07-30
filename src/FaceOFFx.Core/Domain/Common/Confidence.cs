@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace FaceOFFx.Core.Domain.Common;
 
 /// <summary>
@@ -18,19 +20,21 @@ namespace FaceOFFx.Core.Domain.Common;
 ///     var confidence = result.Value;
 ///     Console.WriteLine($"Confidence: {confidence}"); // Output: "Confidence: 95.0%"
 /// }
-/// 
+///
 /// // Use predefined values
 /// var noConfidence = Confidence.Zero;
 /// var fullConfidence = Confidence.One;
 /// </code>
 /// </example>
+[PublicAPI]
 public sealed record Confidence : PercentageValue
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="Confidence"/> class.
     /// </summary>
     /// <param name="value">The confidence value as a ratio between 0.0 and 1.0.</param>
-    private Confidence(float value) : base(value) { }
+    private Confidence(float value)
+        : base(value) { }
 
     /// <summary>
     /// Creates a new <see cref="Confidence"/> instance with the specified value.
@@ -50,7 +54,9 @@ public sealed record Confidence : PercentageValue
     {
         if (float.IsNaN(value) || float.IsInfinity(value))
         {
-            return Result.Failure<Confidence>($"Confidence must be a valid number, but was {value}");
+            return Result.Failure<Confidence>(
+                $"Confidence must be a valid number, but was {value}"
+            );
         }
 
         return Create(value, v => ValidatePercentage(v, "Confidence"), v => new Confidence(v));
@@ -61,7 +67,7 @@ public sealed record Confidence : PercentageValue
     /// </summary>
     /// <value>A confidence value of 0.0, indicating no confidence.</value>
     public static Confidence Zero => new(0.0f);
-    
+
     /// <summary>
     /// Gets a <see cref="Confidence"/> instance representing complete confidence (1.0).
     /// </summary>

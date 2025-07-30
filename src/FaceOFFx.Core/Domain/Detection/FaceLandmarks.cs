@@ -1,5 +1,6 @@
 using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Standards;
+using JetBrains.Annotations;
 
 namespace FaceOFFx.Core.Domain.Detection;
 
@@ -34,7 +35,7 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// {
 ///     landmarkPoints.Add(new Point2D(x[i], y[i]));
 /// }
-/// 
+///
 /// var landmarks = new FaceLandmarks68(landmarkPoints);
 /// if (landmarks.IsValid)
 /// {
@@ -46,6 +47,7 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// }
 /// </code>
 /// </example>
+[PublicAPI]
 public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
 {
     /// <summary>
@@ -66,8 +68,8 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// operations, particularly for calculating the rotation angle needed for
     /// PIV-compliant images where eyes must be horizontally aligned.
     /// </remarks>
-    public Point2D LeftEyeCenter => ComputeCenter(Points.Skip(36).Take(6).ToList());   // Points 36-41
-    
+    public Point2D LeftEyeCenter => ComputeCenter(Points.Skip(36).Take(6).ToList()); // Points 36-41
+
     /// <summary>
     /// Gets the center point of the right eye based on the eye contour landmarks.
     /// </summary>
@@ -79,7 +81,7 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// that define the eye contour. Together with the left eye center, this point
     /// enables accurate face rotation correction and inter-pupillary distance measurement.
     /// </remarks>
-    public Point2D RightEyeCenter => ComputeCenter(Points.Skip(42).Take(6).ToList());  // Points 42-47
+    public Point2D RightEyeCenter => ComputeCenter(Points.Skip(42).Take(6).ToList()); // Points 42-47
 
     /// <summary>
     /// Computes the geometric center of a collection of points.
@@ -105,8 +107,7 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// failures, or data corruption.
     /// </remarks>
     public bool IsValid => Points.Count == 68;
-    
-    
+
     /// <summary>
     /// Creates an Appendix C.6 compliant ROI set for PIV images.
     /// </summary>
@@ -127,13 +128,11 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     /// }
     /// </code>
     /// </example>
-    public Result<FacialRoiSet> CalculateRoiSet(
-        int imageWidth, 
-        int imageHeight)
+    public Result<FacialRoiSet> CalculateRoiSet(int imageWidth, int imageHeight)
     {
         return FacialRoiSet.CreateAppendixC6(imageWidth, imageHeight);
     }
-    
+
     /// <summary>
     /// Calculates the PIV compliance lines (AA, BB, CC) from the 68-point landmarks.
     /// </summary>
@@ -147,45 +146,47 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
     {
         if (!IsValid)
         {
-            throw new InvalidOperationException("Cannot calculate PIV lines from invalid landmarks (must have exactly 68 points)");
+            throw new InvalidOperationException(
+                "Cannot calculate PIV lines from invalid landmarks (must have exactly 68 points)"
+            );
         }
-        
+
         // Calculate nose center from nose bridge landmarks (27-30)
         var noseBridgePoints = Points.Skip(27).Take(4).ToList(); // Points 27-30: nose bridge
         var noseCenter = ComputeCenter(noseBridgePoints);
-        
+
         // Calculate mouth center from key mouth landmarks
         // Use outer mouth corners (48, 54) and top/bottom centers (51, 57)
         var mouthKeyPoints = new[] { Points[48], Points[51], Points[54], Points[57] };
         var mouthCenter = ComputeCenter(mouthKeyPoints);
-        
+
         // Eye centers are already available
         var leftEyeCenter = LeftEyeCenter;
         var rightEyeCenter = RightEyeCenter;
-        
+
         // Find the actual widest points from the face contour (points 0-16)
         var faceContourPoints = Points.Take(17).ToList(); // Points 0-16: jaw/face contour
-        
+
         // Find leftmost and rightmost points
         var leftmostPoint = faceContourPoints.OrderBy(p => p.X).First();
         var rightmostPoint = faceContourPoints.OrderByDescending(p => p.X).First();
-        
+
         // Calculate the Y-position as the average of the widest points
         var levelY = (leftmostPoint.Y + rightmostPoint.Y) / 2.0f;
-        
+
         // Create level ear points for aesthetic head width line
         var leftEarPoint = new Point2D(leftmostPoint.X, levelY);
         var rightEarPoint = new Point2D(rightmostPoint.X, levelY);
-        
+
         // Calculate Line AA (Vertical Center Line) - average of nose and mouth X coordinates
         var lineAA_X = (noseCenter.X + mouthCenter.X) / 2.0f;
-        
+
         // Calculate Line BB (Horizontal Eye Line) - average of eye Y coordinates
         var lineBB_Y = (leftEyeCenter.Y + rightEyeCenter.Y) / 2.0f;
-        
+
         // Calculate Line CC (Head Width) - now using actual widest points
         var lineCC_Width = rightmostPoint.X - leftmostPoint.X;
-        
+
         return new PivComplianceLines(
             lineAA_X,
             lineBB_Y,
@@ -195,6 +196,7 @@ public record FaceLandmarks68(IReadOnlyList<Point2D> Points)
             leftEyeCenter,
             rightEyeCenter,
             leftEarPoint,
-            rightEarPoint);
+            rightEarPoint
+        );
     }
 }

@@ -1,4 +1,5 @@
 using FaceOFFx.Models;
+using JetBrains.Annotations;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -8,6 +9,7 @@ namespace FaceOFFx.Infrastructure.Services;
 /// <summary>
 /// RetinaFace face detector implementation
 /// </summary>
+[PublicAPI]
 public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
 {
     private readonly ILogger<RetinaFaceDetector> _logger;
@@ -22,7 +24,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
 
     // RetinaFace normalization constants
     private static readonly float[] MeanValues = { 104f, 117f, 123f };
-    
+
     // Variance values for decoding
     private static readonly float[] Variances = { 0.1f, 0.2f };
 
@@ -42,7 +44,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                 GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
                 ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
                 EnableCpuMemArena = true,
-                EnableMemoryPattern = true
+                EnableMemoryPattern = true,
             };
 
             // Load RetinaFace model
@@ -71,9 +73,14 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// </remarks>
     public async Task<Result<IReadOnlyList<DetectedFace>>> DetectFacesAsync(
         Image<Rgba32> image,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-        _logger.LogDebug("DetectFacesAsync started with image size: {Width}x{Height}", image.Width, image.Height);
+        _logger.LogDebug(
+            "DetectFacesAsync started with image size: {Width}x{Height}",
+            image.Width,
+            image.Height
+        );
 
         try
         {
@@ -86,24 +93,30 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             // Create input
             var inputs = new List<NamedOnnxValue>
             {
-                NamedOnnxValue.CreateFromTensor(inputName, inputTensor)
+                NamedOnnxValue.CreateFromTensor(inputName, inputTensor),
             };
 
             // Run inference
-            using var results = await Task.Run(() => _session.Run(inputs), cancellationToken).ConfigureAwait(false);
+            using var results = await Task.Run(() => _session.Run(inputs), cancellationToken)
+                .ConfigureAwait(false);
 
             // Process outputs
             var detections = ProcessOutput(results, image.Width, image.Height, scaleX, scaleY);
 
             _logger.LogDebug("Detected {Count} faces", detections.Count);
-            _logger.LogInformation("DetectFacesAsync completed successfully with {Count} faces detected", detections.Count);
+            _logger.LogInformation(
+                "DetectFacesAsync completed successfully with {Count} faces detected",
+                detections.Count
+            );
 
             return Result.Success<IReadOnlyList<DetectedFace>>(detections);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Face detection failed");
-            return Result.Failure<IReadOnlyList<DetectedFace>>($"Face detection failed: {ex.Message}");
+            return Result.Failure<IReadOnlyList<DetectedFace>>(
+                $"Face detection failed: {ex.Message}"
+            );
         }
     }
 
@@ -112,7 +125,9 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// </summary>
     /// <param name="image">The input image from which the tensor will be prepared.</param>
     /// <returns>The input tensor and scale factors for coordinate conversion.</returns>
-    private (DenseTensor<float> tensor, float scaleX, float scaleY) PrepareInputTensor(Image<Rgba32> image)
+    private (DenseTensor<float> tensor, float scaleX, float scaleY) PrepareInputTensor(
+        Image<Rgba32> image
+    )
     {
         // Work directly with ImageSharp Image
         using var img = image.Clone();
@@ -168,8 +183,13 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// <param name="scaleX">The X scale factor used during preprocessing.</param>
     /// <param name="scaleY">The Y scale factor used during preprocessing.</param>
     /// <returns>A list of detected faces represented as <see cref="DetectedFace"/> objects.</returns>
-    private List<DetectedFace> ProcessOutput(IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results, 
-        int imageWidth, int imageHeight, float scaleX, float scaleY)
+    private List<DetectedFace> ProcessOutput(
+        IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results,
+        int imageWidth,
+        int imageHeight,
+        float scaleX,
+        float scaleY
+    )
     {
         var detections = new List<DetectedFace>();
 
@@ -177,18 +197,29 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
         var outputs = results.ToList();
         if (outputs.Count < 2)
         {
-            _logger.LogWarning("Unexpected number of outputs from RetinaFace model: {Count}", outputs.Count);
+            _logger.LogWarning(
+                "Unexpected number of outputs from RetinaFace model: {Count}",
+                outputs.Count
+            );
             return detections;
         }
 
         // Get output tensors
-        var bboxOutput = outputs.FirstOrDefault(o => o.Name.Contains("bbox") || o.Name.Contains("loc"))?.AsTensor<float>();
-        var confOutput = outputs.FirstOrDefault(o => o.Name.Contains("conf") || o.Name.Contains("score"))?.AsTensor<float>();
-        var landmarkOutput = outputs.FirstOrDefault(o => o.Name.Contains("landmark") || o.Name.Contains("landm"))?.AsTensor<float>();
+        var bboxOutput = outputs
+            .FirstOrDefault(o => o.Name.Contains("bbox") || o.Name.Contains("loc"))
+            ?.AsTensor<float>();
+        var confOutput = outputs
+            .FirstOrDefault(o => o.Name.Contains("conf") || o.Name.Contains("score"))
+            ?.AsTensor<float>();
+        var landmarkOutput = outputs
+            .FirstOrDefault(o => o.Name.Contains("landmark") || o.Name.Contains("landm"))
+            ?.AsTensor<float>();
 
         if (bboxOutput == null || confOutput == null)
         {
-            _logger.LogWarning("Could not find required outputs (bbox and confidence) from RetinaFace model");
+            _logger.LogWarning(
+                "Could not find required outputs (bbox and confidence) from RetinaFace model"
+            );
             return detections;
         }
 
@@ -198,14 +229,19 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
 
         // Generate prior boxes (anchors)
         var priors = GeneratePriorBoxes(ModelInputSize, ModelInputSize);
-        
+
         if (priors.Count != numDetections)
         {
-            _logger.LogWarning("Prior box count {PriorCount} doesn't match detection count {DetCount}", priors.Count, numDetections);
+            _logger.LogWarning(
+                "Prior box count {PriorCount} doesn't match detection count {DetCount}",
+                priors.Count,
+                numDetections
+            );
             return detections;
         }
 
-        var candidateDetections = new List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)>();
+        var candidateDetections =
+            new List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)>();
 
         // Process each detection
         for (int i = 0; i < numDetections && i < priors.Count; i++)
@@ -223,7 +259,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                 // Single score output
                 confidence = confOutput[0, i, 0];
             }
-            
+
             if (confidence < ConfidenceThreshold)
             {
                 continue;
@@ -235,9 +271,17 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             var ty = bboxOutput[0, i, 1];
             var tw = bboxOutput[0, i, 2];
             var th = bboxOutput[0, i, 3];
-            
-            var decodedBox = DecodeBoundingBox(tx, ty, tw, th,
-                prior.X, prior.Y, prior.Width, prior.Height);
+
+            var decodedBox = DecodeBoundingBox(
+                tx,
+                ty,
+                tw,
+                th,
+                prior.X,
+                prior.Y,
+                prior.Width,
+                prior.Height
+            );
 
             // Convert to image coordinates
             var scale = Math.Min(scaleX, scaleY);
@@ -267,19 +311,45 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             FaceLandmarks5? landmarks = null;
             if (landmarkOutput != null && landmarkOutput.Dimensions.Length >= 3)
             {
-                var landmarkTensor = landmarkOutput as DenseTensor<float> ?? new DenseTensor<float>(landmarkOutput.ToArray(), landmarkOutput.Dimensions.ToArray());
+                var landmarkTensor =
+                    landmarkOutput as DenseTensor<float>
+                    ?? new DenseTensor<float>(
+                        landmarkOutput.ToArray(),
+                        landmarkOutput.Dimensions.ToArray()
+                    );
                 var decodedLandmarks = DecodeLandmarks(
-                    landmarkTensor, i, prior.X, prior.Y, prior.Width, prior.Height);
-                
+                    landmarkTensor,
+                    i,
+                    prior.X,
+                    prior.Y,
+                    prior.Width,
+                    prior.Height
+                );
+
                 if (decodedLandmarks != null)
                 {
                     // Convert landmark coordinates
                     landmarks = new FaceLandmarks5(
-                        new Point2D((decodedLandmarks[0] - padX) / scale, (decodedLandmarks[1] - padY) / scale),
-                        new Point2D((decodedLandmarks[2] - padX) / scale, (decodedLandmarks[3] - padY) / scale),
-                        new Point2D((decodedLandmarks[4] - padX) / scale, (decodedLandmarks[5] - padY) / scale),
-                        new Point2D((decodedLandmarks[6] - padX) / scale, (decodedLandmarks[7] - padY) / scale),
-                        new Point2D((decodedLandmarks[8] - padX) / scale, (decodedLandmarks[9] - padY) / scale)
+                        new Point2D(
+                            (decodedLandmarks[0] - padX) / scale,
+                            (decodedLandmarks[1] - padY) / scale
+                        ),
+                        new Point2D(
+                            (decodedLandmarks[2] - padX) / scale,
+                            (decodedLandmarks[3] - padY) / scale
+                        ),
+                        new Point2D(
+                            (decodedLandmarks[4] - padX) / scale,
+                            (decodedLandmarks[5] - padY) / scale
+                        ),
+                        new Point2D(
+                            (decodedLandmarks[6] - padX) / scale,
+                            (decodedLandmarks[7] - padY) / scale
+                        ),
+                        new Point2D(
+                            (decodedLandmarks[8] - padX) / scale,
+                            (decodedLandmarks[9] - padY) / scale
+                        )
                     );
                 }
             }
@@ -296,8 +366,11 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             var detectedFace = new DetectedFace(
                 box,
                 confidence,
-                landmarks != null ? Maybe<FaceLandmarks5>.From(landmarks) : Maybe<FaceLandmarks5>.None);
-            
+                landmarks != null
+                    ? Maybe<FaceLandmarks5>.From(landmarks)
+                    : Maybe<FaceLandmarks5>.None
+            );
+
             detections.Add(detectedFace);
         }
 
@@ -307,17 +380,21 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// <summary>
     /// Generates prior boxes (anchors) for RetinaFace model.
     /// </summary>
-    private List<(float X, float Y, float Width, float Height)> GeneratePriorBoxes(int imageWidth, int imageHeight)
+    private List<(float X, float Y, float Width, float Height)> GeneratePriorBoxes(
+        int imageWidth,
+        int imageHeight
+    )
     {
         var priors = new List<(float X, float Y, float Width, float Height)>();
-        
+
         // RetinaFace uses multiple feature maps with different strides
         var minSizes = new[] { new[] { 16, 32 }, new[] { 64, 128 }, new[] { 256, 512 } };
         var steps = new[] { 8, 16, 32 };
-        var featureMapSizes = new[] {
+        var featureMapSizes = new[]
+        {
             new[] { imageHeight / steps[0], imageWidth / steps[0] },
             new[] { imageHeight / steps[1], imageWidth / steps[1] },
-            new[] { imageHeight / steps[2], imageWidth / steps[2] }
+            new[] { imageHeight / steps[2], imageWidth / steps[2] },
         };
 
         for (int k = 0; k < minSizes.Length; k++)
@@ -336,7 +413,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                         // Calculate center in pixel coordinates
                         var centerX = (j + 0.5f) * step;
                         var centerY = (i + 0.5f) * step;
-                        
+
                         // Size is just the minSize
                         var boxWidth = minSize;
                         var boxHeight = minSize;
@@ -346,7 +423,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                         var normalizedCy = centerY / imageHeight;
                         var normalizedW = (float)boxWidth / imageWidth;
                         var normalizedH = (float)boxHeight / imageHeight;
-                        
+
                         priors.Add((normalizedCx, normalizedCy, normalizedW, normalizedH));
                     }
                 }
@@ -360,13 +437,20 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// Decodes bounding box predictions using prior boxes.
     /// </summary>
     private (float x1, float y1, float x2, float y2) DecodeBoundingBox(
-        float tx, float ty, float tw, float th,
-        float priorCx, float priorCy, float priorW, float priorH)
+        float tx,
+        float ty,
+        float tw,
+        float th,
+        float priorCx,
+        float priorCy,
+        float priorW,
+        float priorH
+    )
     {
         // Decode center offset: prior center + prediction * variance * prior size
         var cx = priorCx + tx * Variances[0] * priorW;
         var cy = priorCy + ty * Variances[0] * priorH;
-        
+
         // Decode size: prior size * exp(prediction * variance)
         var w = priorW * (float)Math.Exp(tw * Variances[1]);
         var h = priorH * (float)Math.Exp(th * Variances[1]);
@@ -389,8 +473,14 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// <summary>
     /// Decodes landmark predictions using prior boxes.
     /// </summary>
-    private float[]? DecodeLandmarks(DenseTensor<float> landmarkOutput, int index,
-        float priorCx, float priorCy, float priorW, float priorH)
+    private float[]? DecodeLandmarks(
+        DenseTensor<float> landmarkOutput,
+        int index,
+        float priorCx,
+        float priorCy,
+        float priorW,
+        float priorH
+    )
     {
         try
         {
@@ -405,7 +495,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                 // Apply offset relative to prior box (in normalized coordinates)
                 var normalizedX = priorCx + lx * Variances[0] * priorW;
                 var normalizedY = priorCy + ly * Variances[0] * priorH;
-                
+
                 // Convert to pixel coordinates
                 landmarks[i * 2] = normalizedX * ModelInputSize;
                 landmarks[i * 2 + 1] = normalizedY * ModelInputSize;
@@ -424,7 +514,9 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// Applies Non-Max Suppression to reduce overlapping detections.
     /// </summary>
     private List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)> ApplyNonMaxSuppression(
-        List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)> detections, float threshold)
+        List<(FaceBox box, float confidence, FaceLandmarks5? landmarks)> detections,
+        float threshold
+    )
     {
         if (detections.Count == 0)
         {
@@ -445,8 +537,15 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             sorted.RemoveAll(detection =>
             {
                 var iou = CalculateIoU(
-                    current.box.X, current.box.Y, current.box.X + current.box.Width, current.box.Y + current.box.Height,
-                    detection.box.X, detection.box.Y, detection.box.X + detection.box.Width, detection.box.Y + detection.box.Height);
+                    current.box.X,
+                    current.box.Y,
+                    current.box.X + current.box.Width,
+                    current.box.Y + current.box.Height,
+                    detection.box.X,
+                    detection.box.Y,
+                    detection.box.X + detection.box.Width,
+                    detection.box.Y + detection.box.Height
+                );
                 return iou > threshold;
             });
         }
@@ -457,8 +556,16 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// <summary>
     /// Calculates the Intersection over Union (IoU) between two bounding boxes.
     /// </summary>
-    private static float CalculateIoU(float x1a, float y1a, float x2a, float y2a,
-                               float x1b, float y1b, float x2b, float y2b)
+    private static float CalculateIoU(
+        float x1a,
+        float y1a,
+        float x2a,
+        float y2a,
+        float x1b,
+        float y1b,
+        float x2b,
+        float y2b
+    )
     {
         var intersectionX1 = Math.Max(x1a, x1b);
         var intersectionY1 = Math.Max(y1a, y1b);
@@ -470,7 +577,8 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
             return 0;
         }
 
-        var intersectionArea = (intersectionX2 - intersectionX1) * (intersectionY2 - intersectionY1);
+        var intersectionArea =
+            (intersectionX2 - intersectionX1) * (intersectionY2 - intersectionY1);
         var areaA = (x2a - x1a) * (y2a - y1a);
         var areaB = (x2b - x1b) * (y2b - y1b);
         var unionArea = areaA + areaB - intersectionArea;

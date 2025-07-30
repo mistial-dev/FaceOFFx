@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -7,6 +8,7 @@ namespace FaceOFFx.Infrastructure.Services;
 /// <summary>
 /// ONNX-based 68-point facial landmark extractor using PFLD model
 /// </summary>
+[PublicAPI]
 public sealed class OnnxLandmarkExtractor : ILandmarkExtractor, IDisposable
 {
     private readonly ILogger<OnnxLandmarkExtractor> _logger;
@@ -28,7 +30,7 @@ public sealed class OnnxLandmarkExtractor : ILandmarkExtractor, IDisposable
         {
             var sessionOptions = new SessionOptions
             {
-                GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL
+                GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_ALL,
             };
 
             // Load model from embedded resources
@@ -51,9 +53,9 @@ public sealed class OnnxLandmarkExtractor : ILandmarkExtractor, IDisposable
     public async Task<Result<FaceLandmarks68>> ExtractLandmarksAsync(
         Image<Rgba32> image,
         FaceBox faceBox,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default
+    )
     {
-
         try
         {
             // Step 1: Crop face region with some padding
@@ -66,35 +68,47 @@ public sealed class OnnxLandmarkExtractor : ILandmarkExtractor, IDisposable
             var cropHeight = Math.Min(image.Height - cropY, (int)faceBox.Height + 2 * padding);
 
             using var faceImage = image.Clone(ctx =>
-                ctx.Crop(new Rectangle(cropX, cropY, cropWidth, cropHeight)));
+                ctx.Crop(new Rectangle(cropX, cropY, cropWidth, cropHeight))
+            );
 
             // Step 2: Resize to model input size (112x112) with padding to preserve aspect ratio
-            faceImage.Mutate(static ctx => ctx.Resize(new ResizeOptions
-            {
-                Size = new Size(ModelInputSize, ModelInputSize),
-                Mode = ResizeMode.Pad,
-                PadColor = Color.Gray
-            }));
+            faceImage.Mutate(static ctx =>
+                ctx.Resize(
+                    new ResizeOptions
+                    {
+                        Size = new Size(ModelInputSize, ModelInputSize),
+                        Mode = ResizeMode.Pad,
+                        PadColor = Color.Gray,
+                    }
+                )
+            );
 
             // Step 3: Convert to tensor and normalize to [0, 1]
             var tensor = ImageToTensor(faceImage);
 
             // Step 4: Run inference
-            var inputs = new List<NamedOnnxValue> { NamedOnnxValue.CreateFromTensor(_inputName, tensor) };
+            var inputs = new List<NamedOnnxValue>
+            {
+                NamedOnnxValue.CreateFromTensor(_inputName, tensor),
+            };
 
-            using var results = await Task.Run(() => _session.Run(inputs), cancellationToken).ConfigureAwait(false);
+            using var results = await Task.Run(() => _session.Run(inputs), cancellationToken)
+                .ConfigureAwait(false);
             var output = results.First().AsEnumerable<float>().ToArray();
 
             // Step 5: Convert output to landmarks
             if (output.Length != NumLandmarks * 2)
             {
-                return Result.Failure<FaceLandmarks68>($"Invalid model output: expected {NumLandmarks * 2} values, got {output.Length}");
+                return Result.Failure<FaceLandmarks68>(
+                    $"Invalid model output: expected {NumLandmarks * 2} values, got {output.Length}"
+                );
             }
 
             // Calculate padding used when resizing with Mode=Pad
             var aspectRatio = (float)cropWidth / cropHeight;
             var targetAspectRatio = 1.0f; // 112x112 is square
-            float padX = 0, padY = 0;
+            float padX = 0,
+                padY = 0;
             float scaleFactor;
 
             if (aspectRatio > targetAspectRatio)

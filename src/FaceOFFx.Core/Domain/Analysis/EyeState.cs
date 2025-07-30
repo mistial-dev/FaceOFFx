@@ -11,27 +11,28 @@ public record EyeStatePrediction
     /// Gets the detected state of the left eye
     /// </summary>
     public EyeState LeftEye { get; }
-    
+
     /// <summary>
     /// Gets the detected state of the right eye
     /// </summary>
     public EyeState RightEye { get; }
-    
+
     /// <summary>
     /// Gets the confidence score for the left eye detection
     /// </summary>
     public Confidence LeftEyeConfidence { get; }
-    
+
     /// <summary>
     /// Gets the confidence score for the right eye detection
     /// </summary>
     public Confidence RightEyeConfidence { get; }
 
     private EyeStatePrediction(
-        EyeState leftEye, 
-        EyeState rightEye, 
-        Confidence leftEyeConfidence, 
-        Confidence rightEyeConfidence)
+        EyeState leftEye,
+        EyeState rightEye,
+        Confidence leftEyeConfidence,
+        Confidence rightEyeConfidence
+    )
     {
         LeftEye = leftEye;
         RightEye = rightEye;
@@ -51,7 +52,8 @@ public record EyeStatePrediction
         EyeState leftEye,
         float leftConfidence,
         EyeState rightEye,
-        float rightConfidence)
+        float rightConfidence
+    )
     {
         var leftConfResult = Confidence.Create(leftConfidence);
         var rightConfResult = Confidence.Create(rightConfidence);
@@ -65,25 +67,27 @@ public record EyeStatePrediction
             return Result.Failure<EyeStatePrediction>($"Right eye: {rightConfResult.Error}");
         }
 
-        return Result.Success(new EyeStatePrediction(
-            leftEye, rightEye, leftConfResult.Value, rightConfResult.Value));
+        return Result.Success(
+            new EyeStatePrediction(leftEye, rightEye, leftConfResult.Value, rightConfResult.Value)
+        );
     }
 
     /// <summary>
     /// Gets whether both eyes are detected as open
     /// </summary>
     public bool BothEyesOpen => LeftEye == EyeState.Open && RightEye == EyeState.Open;
-    
+
     /// <summary>
     /// Gets whether both eyes are detected as closed
     /// </summary>
     public bool BothEyesClosed => LeftEye == EyeState.Closed && RightEye == EyeState.Closed;
-    
+
     /// <summary>
     /// Gets whether one eye is open and the other is closed (winking)
     /// </summary>
-    public bool IsWinking => LeftEye == EyeState.Open && RightEye == EyeState.Closed ||
-                            LeftEye == EyeState.Closed && RightEye == EyeState.Open;
+    public bool IsWinking =>
+        LeftEye == EyeState.Open && RightEye == EyeState.Closed
+        || LeftEye == EyeState.Closed && RightEye == EyeState.Open;
 
     /// <summary>
     /// Returns a string representation of the eye states
@@ -101,9 +105,9 @@ public enum EyeState
     /// Eye is detected as open
     /// </summary>
     Open,
-    
+
     /// <summary>
     /// Eye is detected as closed
     /// </summary>
-    Closed
+    Closed,
 }

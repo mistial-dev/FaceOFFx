@@ -11,17 +11,15 @@ using SixLabors.ImageSharp.Processing;
 namespace FaceOFFx.Cli.Services;
 
 /// <summary>
-/// Provides visualization services for facial ROI regions on images.
-/// Draws bounding boxes and annotations for JPEG 2000 ROI encoding visualization.
+/// Provides visualization services for facial ROI Inner Region on images.
+/// Draws bounding box and annotations for JPEG 2000 ROI encoding visualization.
 /// </summary>
 /// <remarks>
-/// This service creates visual overlays showing the three ROI regions used for JPEG 2000 encoding:
-/// - ROI 1 (Periocular): Highest priority, drawn in red
-/// - ROI 2 (Orofacial): Medium priority, drawn in yellow
-/// - ROI 3 (Full Face): Lowest priority, drawn in green
+/// This service creates visual overlays showing the single Inner Region used for JPEG 2000 encoding:
+/// - Inner Region: Highest priority, drawn in red (includes complete facial area)
 ///
 /// The visualization helps verify ROI placement and provides visual feedback for
-/// JPEG 2000 encoding priority regions based on 68-point facial landmarks.
+/// JPEG 2000 encoding priority region based on 68-point facial landmarks.
 /// </remarks>
 public static class RoiVisualizationService
 {
@@ -30,30 +28,27 @@ public static class RoiVisualizationService
     /// </summary>
     private static readonly Dictionary<int, Color> PriorityColors = new Dictionary<int, Color>
     {
-        { 3, Color.Red },     // Highest priority - Periocular region
-        { 2, Color.Yellow },  // Medium priority - Orofacial region
-        { 1, Color.Green }    // Lowest priority - Full face with context
+        { 3, Color.Red }, // Highest priority - Inner Region
     };
 
     /// <summary>
-    /// Draws all ROI regions on the provided image with colored bounding boxes and labels.
+    /// Draws the ROI Inner Region on the provided image with colored bounding box and label.
     /// </summary>
-    /// <param name="sourceImage">The image to draw ROI regions on. Will be cloned, original remains unchanged.</param>
-    /// <param name="roiSet">The facial ROI set containing the three regions to visualize.</param>
+    /// <param name="sourceImage">The image to draw ROI Inner Region on. Will be cloned, original remains unchanged.</param>
+    /// <param name="roiSet">The facial ROI set containing the single Inner Region to visualize.</param>
     /// <param name="strokeWidth">The width of the bounding box strokes (default: 3 pixels). Set to 0 to skip drawing boxes.</param>
-    /// <param name="showLabels">Whether to draw priority labels on each ROI (default: true).</param>
+    /// <param name="showLabels">Whether to draw priority labels on the ROI (default: true).</param>
+    /// <param name="logger">Optional logger for diagnostic output and debugging information.</param>
     /// <returns>
     /// A Result containing either:
-    /// - Success: New image with ROI regions drawn as colored bounding boxes
+    /// - Success: New image with ROI Inner Region drawn as colored bounding box
     /// - Failure: Error message if visualization fails
     /// </returns>
     /// <remarks>
     /// Creates a visual overlay showing:
-    /// - Red box: ROI 1 (Periocular) - eyes and eyebrows region
-    /// - Yellow box: ROI 2 (Orofacial) - nose, mouth, and jaw region
-    /// - Green box: ROI 3 (Full Face) - complete face with background context
+    /// - Red box: Inner Region - complete facial area with optimized boundaries
     ///
-    /// Each box is drawn with the specified stroke width and optional priority labels.
+    /// The box is drawn with the specified stroke width and optional priority label.
     /// The source image is cloned to preserve the original.
     /// </remarks>
     /// <example>
@@ -75,41 +70,66 @@ public static class RoiVisualizationService
         FacialRoiSet roiSet,
         float strokeWidth = 3f,
         bool showLabels = true,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
     {
         try
         {
-            logger?.LogDebug("Starting DrawRoiRegions with strokeWidth={StrokeWidth}, showLabels={ShowLabels}", strokeWidth, showLabels);
-            
+            logger?.LogDebug(
+                "Starting DrawRoiRegions with strokeWidth={StrokeWidth}, showLabels={ShowLabels}",
+                strokeWidth,
+                showLabels
+            );
+
             // Validate inputs
             var validationResult = roiSet.Validate();
             if (validationResult.IsFailure)
             {
-                logger?.LogError("Invalid ROI set validation failed: {Error}", validationResult.Error);
+                logger?.LogError(
+                    "Invalid ROI set validation failed: {Error}",
+                    validationResult.Error
+                );
                 return Result.Failure<Image<Rgba32>>($"Invalid ROI set: {validationResult.Error}");
             }
-            
-            logger?.LogDebug("ROI set validated successfully. Contains {RegionCount} regions", roiSet.AllRegions.Count());
+
+            logger?.LogDebug(
+                "ROI set validated successfully. Contains {RegionCount} region",
+                roiSet.AllRegions.Count()
+            );
 
             // Clone the image to avoid modifying the original
-            logger?.LogDebug("Cloning source image with dimensions {Width}x{Height}", sourceImage.Width, sourceImage.Height);
+            logger?.LogDebug(
+                "Cloning source image with dimensions {Width}x{Height}",
+                sourceImage.Width,
+                sourceImage.Height
+            );
             var annotatedImage = sourceImage.Clone(ctx =>
             {
                 // Skip drawing if strokeWidth is 0
                 if (strokeWidth <= 0)
                 {
-                    logger?.LogDebug("Skipping ROI drawing - strokeWidth is {StrokeWidth}", strokeWidth);
+                    logger?.LogDebug(
+                        "Skipping ROI drawing - strokeWidth is {StrokeWidth}",
+                        strokeWidth
+                    );
                     return;
                 }
 
-                // Draw each ROI region in priority order (highest to lowest)
+                // Draw the ROI Inner Region
                 foreach (var region in roiSet.AllRegions)
                 {
                     var color = GetColorForPriority(region.Priority);
                     var bbox = region.BoundingBox;
-                    
-                    logger?.LogDebug("Drawing ROI {RegionName} with priority {Priority} at ({X},{Y}) size {Width}x{Height}",
-                        region.Name, region.Priority, bbox.X, bbox.Y, bbox.Width, bbox.Height);
+
+                    logger?.LogDebug(
+                        "Drawing ROI {RegionName} with priority {Priority} at ({X},{Y}) size {Width}x{Height}",
+                        region.Name,
+                        region.Priority,
+                        bbox.X,
+                        bbox.Y,
+                        bbox.Width,
+                        bbox.Height
+                    );
 
                     // Draw the bounding rectangle
                     var rectangle = new RectangleF(bbox.X, bbox.Y, bbox.Width, bbox.Height);
@@ -118,13 +138,16 @@ public static class RoiVisualizationService
                     // Draw priority label if requested
                     if (showLabels)
                     {
-                        logger?.LogDebug("Drawing priority label for region {RegionName}", region.Name);
+                        logger?.LogDebug(
+                            "Drawing priority label for region {RegionName}",
+                            region.Name
+                        );
                         DrawPriorityLabel(ctx, region, color, logger);
                     }
                 }
             });
 
-            logger?.LogDebug("Successfully created annotated image with ROI regions");
+            logger?.LogDebug("Successfully created annotated image with ROI Inner Region");
             return Result.Success(annotatedImage);
         }
         catch (Exception ex)
@@ -135,12 +158,13 @@ public static class RoiVisualizationService
     }
 
     /// <summary>
-    /// Draws only the landmark points on the image without ROI bounding boxes.
+    /// Draws only the landmark points on the image without ROI bounding box.
     /// </summary>
     /// <param name="sourceImage">The image to draw landmarks on. Will be cloned, original remains unchanged.</param>
     /// <param name="landmarks">The 68-point facial landmarks to visualize.</param>
     /// <param name="pointSize">The radius of each landmark point in pixels (default: 2).</param>
     /// <param name="pointColor">The color to use for landmark points (default: blue).</param>
+    /// <param name="logger">Optional logger for diagnostic output and debugging information.</param>
     /// <returns>
     /// A Result containing either:
     /// - Success: New image with landmark points drawn
@@ -149,27 +173,39 @@ public static class RoiVisualizationService
     /// <remarks>
     /// Draws all 68 facial landmark points as small circles on the image.
     /// Useful for verifying landmark detection accuracy and understanding
-    /// the relationship between landmarks and ROI regions.
+    /// the relationship between landmarks and the ROI Inner Region.
     /// </remarks>
     public static Result<Image<Rgba32>> DrawLandmarkPoints(
         Image<Rgba32> sourceImage,
         FaceLandmarks68 landmarks,
         float pointSize = 2f,
         Color? pointColor = null,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
     {
         try
         {
-            logger?.LogDebug("Starting DrawLandmarkPoints with pointSize={PointSize}, pointColor={Color}", 
-                pointSize, pointColor.HasValue ? "specified" : "Blue");
-            
+            logger?.LogDebug(
+                "Starting DrawLandmarkPoints with pointSize={PointSize}, pointColor={Color}",
+                pointSize,
+                pointColor.HasValue ? "specified" : "Blue"
+            );
+
             if (!landmarks.IsValid)
             {
-                logger?.LogError("Invalid landmarks - expected 68 points, got {Count}", landmarks.Points.Count);
-                return Result.Failure<Image<Rgba32>>("Invalid landmarks: must have exactly 68 points");
+                logger?.LogError(
+                    "Invalid landmarks - expected 68 points, got {Count}",
+                    landmarks.Points.Count
+                );
+                return Result.Failure<Image<Rgba32>>(
+                    "Invalid landmarks: must have exactly 68 points"
+                );
             }
-            
-            logger?.LogDebug("Landmarks validated successfully - {Count} points found", landmarks.Points.Count);
+
+            logger?.LogDebug(
+                "Landmarks validated successfully - {Count} points found",
+                landmarks.Points.Count
+            );
 
             var color = pointColor ?? Color.Blue;
             logger?.LogDebug("Using specified color for landmark points");
@@ -177,12 +213,22 @@ public static class RoiVisualizationService
             var annotatedImage = sourceImage.Clone(ctx =>
             {
                 var pointIndex = 0;
-                foreach (var circle in landmarks.Points.Select(point => new EllipsePolygon(point.X, point.Y, pointSize)))
+                foreach (
+                    var circle in landmarks.Points.Select(point => new EllipsePolygon(
+                        point.X,
+                        point.Y,
+                        pointSize
+                    ))
+                )
                 {
                     if (pointIndex % 10 == 0) // Log every 10th point to avoid spam
                     {
-                        logger?.LogDebug("Drawing landmark point {Index} at ({X},{Y})", 
-                            pointIndex, landmarks.Points[pointIndex].X, landmarks.Points[pointIndex].Y);
+                        logger?.LogDebug(
+                            "Drawing landmark point {Index} at ({X},{Y})",
+                            pointIndex,
+                            landmarks.Points[pointIndex].X,
+                            landmarks.Points[pointIndex].Y
+                        );
                     }
                     ctx.Fill(color, circle);
                     pointIndex++;
@@ -201,23 +247,24 @@ public static class RoiVisualizationService
     }
 
     /// <summary>
-    /// Creates a comprehensive visualization showing both ROI regions and landmark points.
+    /// Creates a comprehensive visualization showing both ROI Inner Region and landmark points.
     /// </summary>
     /// <param name="sourceImage">The image to annotate. Will be cloned, original remains unchanged.</param>
     /// <param name="landmarks">The 68-point facial landmarks.</param>
-    /// <param name="roiSet">The facial ROI set containing regions to visualize.</param>
+    /// <param name="roiSet">The facial ROI set containing the Inner Region to visualize.</param>
     /// <param name="strokeWidth">The width of ROI bounding box strokes (default: 3 pixels).</param>
     /// <param name="pointSize">The radius of landmark points (default: 1.5 pixels).</param>
-    /// <param name="showLabels">Whether to show ROI priority labels (default: true).</param>
+    /// <param name="showLabels">Whether to show ROI priority label (default: true).</param>
+    /// <param name="logger">Optional logger for diagnostic output and debugging information.</param>
     /// <returns>
     /// A Result containing either:
-    /// - Success: New image with both ROI regions and landmark points drawn
+    /// - Success: New image with both ROI Inner Region and landmark points drawn
     /// - Failure: Error message if visualization fails
     /// </returns>
     /// <remarks>
-    /// Combines ROI bounding boxes with landmark point visualization to provide
-    /// a complete view of the facial analysis results. ROI regions are drawn
-    /// as colored rectangles while landmarks appear as small blue dots.
+    /// Combines ROI bounding box with landmark point visualization to provide
+    /// a complete view of the facial analysis results. The ROI Inner Region is drawn
+    /// as a colored rectangle while landmarks appear as small blue dots.
     /// </remarks>
     public static Result<Image<Rgba32>> DrawCompleteVisualization(
         Image<Rgba32> sourceImage,
@@ -226,32 +273,45 @@ public static class RoiVisualizationService
         float strokeWidth = 3f,
         float pointSize = 1.5f,
         bool showLabels = true,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
     {
         try
         {
-            logger?.LogDebug("Starting complete visualization with strokeWidth={StrokeWidth}, pointSize={PointSize}, showLabels={ShowLabels}",
-                strokeWidth, pointSize, showLabels);
-            
-            // First draw the ROI regions
-            logger?.LogDebug("Drawing ROI regions");
+            logger?.LogDebug(
+                "Starting complete visualization with strokeWidth={StrokeWidth}, pointSize={PointSize}, showLabels={ShowLabels}",
+                strokeWidth,
+                pointSize,
+                showLabels
+            );
+
+            // First draw the ROI Inner Region
+            logger?.LogDebug("Drawing ROI Inner Region");
             var roiResult = DrawRoiRegions(sourceImage, roiSet, strokeWidth, showLabels, logger);
             if (roiResult.IsFailure)
             {
-                logger?.LogError("Failed to draw ROI regions: {Error}", roiResult.Error);
+                logger?.LogError("Failed to draw ROI Inner Region: {Error}", roiResult.Error);
                 return roiResult;
             }
 
             // Then overlay the landmark points
             logger?.LogDebug("Overlaying landmark points");
-            var completeResult = DrawLandmarkPoints(roiResult.Value, landmarks, pointSize, Color.Blue, logger);
+            var completeResult = DrawLandmarkPoints(
+                roiResult.Value,
+                landmarks,
+                pointSize,
+                Color.Blue,
+                logger
+            );
             if (completeResult.IsFailure)
             {
                 logger?.LogError("Failed to draw landmark points: {Error}", completeResult.Error);
                 return completeResult;
             }
 
-            logger?.LogDebug("Successfully created complete visualization with ROI regions and landmark points");
+            logger?.LogDebug(
+                "Successfully created complete visualization with ROI Inner Region and landmark points"
+            );
             return completeResult;
         }
         catch (Exception ex)
@@ -262,15 +322,13 @@ public static class RoiVisualizationService
     }
 
     /// <summary>
-    /// Gets the appropriate color for an ROI region based on its priority level.
+    /// Gets the appropriate color for the ROI Inner Region based on its priority level.
     /// </summary>
     /// <param name="priority">The priority level (1=lowest, 3=highest).</param>
     /// <returns>The color associated with the priority level.</returns>
     /// <remarks>
     /// Uses a standardized color scheme:
-    /// - Priority 3 (highest): Red - for critical identity regions
-    /// - Priority 2 (medium): Yellow - for structural and expression regions
-    /// - Priority 1 (lowest): Green - for context and background
+    /// - Priority 3 (highest): Red - for the Inner Region
     /// - Unknown priorities: Default to gray for safety
     /// </remarks>
     private static Color GetColorForPriority(int priority)
@@ -280,32 +338,47 @@ public static class RoiVisualizationService
     }
 
     /// <summary>
-    /// Draws a priority label for an ROI region.
+    /// Draws a priority label for the ROI Inner Region.
     /// </summary>
     /// <param name="context">The image processing context.</param>
-    /// <param name="region">The ROI region to label.</param>
+    /// <param name="region">The ROI Inner Region to label.</param>
     /// <param name="color">The color to use for the label.</param>
+    /// <param name="logger">Optional logger for diagnostic output and debugging information.</param>
     /// <remarks>
     /// Places a small text label showing the ROI priority and name
     /// in the top-left corner of each bounding box.
     /// </remarks>
-    private static void DrawPriorityLabel(IImageProcessingContext context, RoiRegion region, Color color, ILogger? logger = null)
+    private static void DrawPriorityLabel(
+        IImageProcessingContext context,
+        RoiRegion region,
+        Color color,
+        ILogger? logger = null
+    )
     {
         try
         {
-            logger?.LogDebug("Attempting to draw priority label for region {RegionName} with priority {Priority}", 
-                region.Name, region.Priority);
-            
+            logger?.LogDebug(
+                "Attempting to draw priority label for region {RegionName} with priority {Priority}",
+                region.Name,
+                region.Priority
+            );
+
             // Note: Text rendering requires SixLabors.Fonts package which is not currently included
-            // The colored bounding boxes provide sufficient visual distinction for ROI regions
+            // The colored bounding box provides sufficient visual distinction for the ROI Inner Region
             // Once the fonts package is added, implement text rendering here
-            
-            logger?.LogDebug("Text rendering not available - SixLabors.Fonts package not included. " +
-                "Using colored bounding boxes for ROI distinction");
+
+            logger?.LogDebug(
+                "Text rendering not available - SixLabors.Fonts package not included. "
+                    + "Using colored bounding boxes for ROI distinction"
+            );
         }
         catch (Exception ex)
         {
-            logger?.LogWarning(ex, "Failed to draw priority label for region {RegionName}", region.Name);
+            logger?.LogWarning(
+                ex,
+                "Failed to draw priority label for region {RegionName}",
+                region.Name
+            );
             // Silently ignore label drawing failures to avoid breaking ROI visualization
         }
     }
@@ -337,12 +410,16 @@ public static class RoiVisualizationService
         PivComplianceValidation complianceValidation,
         float strokeWidth = 2f,
         bool showLabels = true,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
     {
         try
         {
-            logger?.LogDebug("Starting PIV compliance lines visualization with strokeWidth={StrokeWidth}", strokeWidth);
-            
+            logger?.LogDebug(
+                "Starting PIV compliance lines visualization with strokeWidth={StrokeWidth}",
+                strokeWidth
+            );
+
             // Clone the image to avoid modifying the original
             var annotatedImage = sourceImage.Clone(ctx =>
             {
@@ -350,57 +427,109 @@ public static class RoiVisualizationService
                 var lineAaColor = complianceValidation.IsAAAligned ? Color.Blue : Color.Red;
                 var verticalLine = new PointF[]
                 {
-                    new PointF(pivLines.LineAA_X, 0), new PointF(pivLines.LineAA_X, sourceImage.Height)
+                    new PointF(pivLines.LineAA_X, 0),
+                    new PointF(pivLines.LineAA_X, sourceImage.Height),
                 };
-                ctx.Draw(lineAaColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine)));
-                logger?.LogDebug("Drew Line AA (vertical center) at X={X} in {Color}", 
-                    pivLines.LineAA_X, lineAaColor);
+                ctx.Draw(
+                    lineAaColor,
+                    strokeWidth,
+                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine))
+                );
+                logger?.LogDebug(
+                    "Drew Line AA (vertical center) at X={X} in {Color}",
+                    pivLines.LineAA_X,
+                    lineAaColor
+                );
 
                 // Line BB (Horizontal Eye Line) - Green if positioned correctly, Orange if incorrect
                 var lineBbColor = complianceValidation.IsBBPositioned ? Color.Green : Color.Orange;
                 var horizontalLine = new PointF[]
                 {
-                    new PointF(0, pivLines.LineBB_Y), new PointF(sourceImage.Width, pivLines.LineBB_Y)
+                    new PointF(0, pivLines.LineBB_Y),
+                    new PointF(sourceImage.Width, pivLines.LineBB_Y),
                 };
-                ctx.Draw(lineBbColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine)));
-                logger?.LogDebug("Drew Line BB (horizontal eye line) at Y={Y} in {Color}", 
-                    pivLines.LineBB_Y, lineBbColor);
+                ctx.Draw(
+                    lineBbColor,
+                    strokeWidth,
+                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine))
+                );
+                logger?.LogDebug(
+                    "Drew Line BB (horizontal eye line) at Y={Y} in {Color}",
+                    pivLines.LineBB_Y,
+                    lineBbColor
+                );
 
                 // Line CC (Head Width Line) - Purple if valid ratio, Red if invalid
                 var lineCcColor = complianceValidation.IsCCRatioValid ? Color.Purple : Color.Red;
                 var headWidthLine = new PointF[]
                 {
-                    new PointF(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y), new PointF(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y)
+                    new PointF(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y),
+                    new PointF(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y),
                 };
-                ctx.Draw(lineCcColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine)));
-                logger?.LogDebug("Drew Line CC (head width) from ({X1},{Y1}) to ({X2},{Y2}) in {Color}", 
-                    pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y,
-                    pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y, lineCcColor);
+                ctx.Draw(
+                    lineCcColor,
+                    strokeWidth,
+                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine))
+                );
+                logger?.LogDebug(
+                    "Drew Line CC (head width) from ({X1},{Y1}) to ({X2},{Y2}) in {Color}",
+                    pivLines.LeftEarPoint.X,
+                    pivLines.LeftEarPoint.Y,
+                    pivLines.RightEarPoint.X,
+                    pivLines.RightEarPoint.Y,
+                    lineCcColor
+                );
 
                 // Draw key points as small circles
                 var pointRadius = strokeWidth + 1;
-                
+
                 // Nose center - Cyan
-                var noseCircle = new EllipsePolygon(pivLines.NoseCenter.X, pivLines.NoseCenter.Y, pointRadius);
+                var noseCircle = new EllipsePolygon(
+                    pivLines.NoseCenter.X,
+                    pivLines.NoseCenter.Y,
+                    pointRadius
+                );
                 ctx.Fill(Color.Cyan, noseCircle);
-                
-                // Mouth center - Magenta  
-                var mouthCircle = new EllipsePolygon(pivLines.MouthCenter.X, pivLines.MouthCenter.Y, pointRadius);
+
+                // Mouth center - Magenta
+                var mouthCircle = new EllipsePolygon(
+                    pivLines.MouthCenter.X,
+                    pivLines.MouthCenter.Y,
+                    pointRadius
+                );
                 ctx.Fill(Color.Magenta, mouthCircle);
-                
+
                 // Eye centers - Yellow
-                var leftEyeCircle = new EllipsePolygon(pivLines.LeftEyeCenter.X, pivLines.LeftEyeCenter.Y, pointRadius);
-                var rightEyeCircle = new EllipsePolygon(pivLines.RightEyeCenter.X, pivLines.RightEyeCenter.Y, pointRadius);
+                var leftEyeCircle = new EllipsePolygon(
+                    pivLines.LeftEyeCenter.X,
+                    pivLines.LeftEyeCenter.Y,
+                    pointRadius
+                );
+                var rightEyeCircle = new EllipsePolygon(
+                    pivLines.RightEyeCenter.X,
+                    pivLines.RightEyeCenter.Y,
+                    pointRadius
+                );
                 ctx.Fill(Color.Yellow, leftEyeCircle);
                 ctx.Fill(Color.Yellow, rightEyeCircle);
-                
+
                 // Ear points - White
-                var leftEarCircle = new EllipsePolygon(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y, pointRadius);
-                var rightEarCircle = new EllipsePolygon(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y, pointRadius);
+                var leftEarCircle = new EllipsePolygon(
+                    pivLines.LeftEarPoint.X,
+                    pivLines.LeftEarPoint.Y,
+                    pointRadius
+                );
+                var rightEarCircle = new EllipsePolygon(
+                    pivLines.RightEarPoint.X,
+                    pivLines.RightEarPoint.Y,
+                    pointRadius
+                );
                 ctx.Fill(Color.White, leftEarCircle);
                 ctx.Fill(Color.White, rightEarCircle);
 
-                logger?.LogDebug("Drew key points: nose (cyan), mouth (magenta), eyes (yellow), ears (white)");
+                logger?.LogDebug(
+                    "Drew key points: nose (cyan), mouth (magenta), eyes (yellow), ears (white)"
+                );
             });
 
             logger?.LogDebug("Successfully created PIV compliance lines visualization");
@@ -409,7 +538,9 @@ public static class RoiVisualizationService
         catch (Exception ex)
         {
             logger?.LogError(ex, "PIV compliance lines visualization failed");
-            return Result.Failure<Image<Rgba32>>($"PIV compliance lines visualization failed: {ex.Message}");
+            return Result.Failure<Image<Rgba32>>(
+                $"PIV compliance lines visualization failed: {ex.Message}"
+            );
         }
     }
 }

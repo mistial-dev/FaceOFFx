@@ -26,10 +26,10 @@ public static class PivTransformCalculator
     {
         var deltaY = rightEye.Y - leftEye.Y;
         var deltaX = rightEye.X - leftEye.X;
-        
+
         // Negative rotation to level the eyes (if right eye is higher, rotate clockwise)
         var rotationDegrees = -(float)(Math.Atan2(deltaY, deltaX) * 180 / Math.PI);
-        
+
         // Limit rotation to ±5 degrees for PIV compliance
         return Math.Max(-5f, Math.Min(5f, rotationDegrees));
     }
@@ -50,7 +50,11 @@ public static class PivTransformCalculator
     /// - Eyes should be positioned at 45% from the top of the image
     /// - Final aspect ratio must be 3:4 (width:height)
     /// </remarks>
-    public static CropRect CalculatePivCrop(Point2D eyeCenter, FaceBox faceBox, ImageDimensions sourceDimensions)
+    public static CropRect CalculatePivCrop(
+        Point2D eyeCenter,
+        FaceBox faceBox,
+        ImageDimensions sourceDimensions
+    )
     {
         // For PIV: face should fill about 60-70% of frame width
         const float targetFaceWidthRatio = 0.70f;
@@ -82,7 +86,7 @@ public static class PivTransformCalculator
             Left = cropX / sourceDimensions.Width,
             Top = cropY / sourceDimensions.Height,
             Width = desiredImageWidth / sourceDimensions.Width,
-            Height = desiredImageHeight / sourceDimensions.Height
+            Height = desiredImageHeight / sourceDimensions.Height,
         };
     }
 
@@ -105,7 +109,7 @@ public static class PivTransformCalculator
 
         var scaleX = (float)pivWidth / sourceDimensions.Width;
         var scaleY = (float)pivHeight / sourceDimensions.Height;
-        
+
         return Math.Min(scaleX, scaleY);
     }
 
@@ -120,7 +124,11 @@ public static class PivTransformCalculator
     /// This function applies 2D rotation transformation around the image center.
     /// Useful for calculating where facial features will be positioned after image rotation.
     /// </remarks>
-    public static Point2D RotatePointAroundImageCenter(Point2D point, float rotationDegrees, ImageDimensions imageDimensions)
+    public static Point2D RotatePointAroundImageCenter(
+        Point2D point,
+        float rotationDegrees,
+        ImageDimensions imageDimensions
+    )
     {
         var imageCenterX = imageDimensions.Width / 2f;
         var imageCenterY = imageDimensions.Height / 2f;

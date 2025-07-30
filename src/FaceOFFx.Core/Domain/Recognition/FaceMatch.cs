@@ -15,7 +15,7 @@ namespace FaceOFFx.Core.Domain.Recognition;
 /// <code>
 /// // Create a face match result
 /// var match = FaceMatch.Create(queryFaceId, candidateFaceId, 0.87f);
-/// 
+///
 /// if (match.IsHighConfidenceMatch)
 /// {
 ///     Console.WriteLine($"Found match with {match.Similarity:P0} confidence");
@@ -32,7 +32,7 @@ public record FaceMatch
     /// The unique identifier of the face that initiated the matching request.
     /// </value>
     public FaceId QueryFaceId { get; }
-    
+
     /// <summary>
     /// Gets the identifier of the matched candidate face.
     /// </summary>
@@ -40,7 +40,7 @@ public record FaceMatch
     /// The unique identifier of the face that was compared against the query.
     /// </value>
     public FaceId MatchedFaceId { get; }
-    
+
     /// <summary>
     /// Gets the similarity score between the two faces.
     /// </summary>
@@ -49,7 +49,7 @@ public record FaceMatch
     /// greater similarity. For cosine similarity, 1.0 represents identical embeddings.
     /// </value>
     public float Similarity { get; }
-    
+
     /// <summary>
     /// Gets the categorized match type based on the similarity score.
     /// </summary>
@@ -92,7 +92,7 @@ public record FaceMatch
     /// var queryId = FaceId.Generate();
     /// var candidateId = FaceId.Generate();
     /// float similarity = queryEmbedding.CosineSimilarity(candidateEmbedding);
-    /// 
+    ///
     /// var match = FaceMatch.Create(queryId, candidateId, similarity);
     /// Console.WriteLine($"Match confidence: {match.Type}");
     /// </code>
@@ -106,7 +106,7 @@ public record FaceMatch
             >= 0.85f => MatchType.High,
             >= 0.70f => MatchType.Medium,
             >= 0.50f => MatchType.Low,
-            _ => MatchType.NoMatch
+            _ => MatchType.NoMatch,
         };
 
         return new FaceMatch(queryFaceId, matchedFaceId, similarity, type);
@@ -124,7 +124,7 @@ public record FaceMatch
     /// IsHighConfidenceMatch for more reliable results.
     /// </remarks>
     public bool IsMatch => Type != MatchType.NoMatch;
-    
+
     /// <summary>
     /// Gets a value indicating whether this is a high confidence match suitable for secure applications.
     /// </summary>
@@ -153,36 +153,36 @@ public enum MatchType
     /// The faces belong to different persons.
     /// </summary>
     NoMatch,
-    
+
     /// <summary>
     /// Low confidence match (0.50 ≤ similarity &lt; 0.70).
     /// Possibly the same person, but additional verification recommended.
     /// </summary>
     Low,
-    
+
     /// <summary>
     /// Medium confidence match (0.70 ≤ similarity &lt; 0.85).
     /// Likely the same person, suitable for non-critical applications.
     /// </summary>
     Medium,
-    
+
     /// <summary>
     /// High confidence match (0.85 ≤ similarity &lt; 0.95).
     /// Same person with high confidence, suitable for most applications.
     /// </summary>
     High,
-    
+
     /// <summary>
     /// Very high confidence match (0.95 ≤ similarity &lt; 0.99).
     /// Same person with very high confidence, suitable for secure applications.
     /// </summary>
     VeryHigh,
-    
+
     /// <summary>
     /// Identical or near-identical match (similarity ≥ 0.99).
     /// Same image or extremely similar images of the same person.
     /// </summary>
-    Identical
+    Identical,
 }
 
 /// <summary>
@@ -198,7 +198,7 @@ public enum MatchType
 /// // Use high security settings for access control
 /// var options = FaceMatchingOptions.HighSecurity;
 /// var matches = faceRecognizer.FindMatches(queryFace, candidates, options);
-/// 
+///
 /// // Custom configuration
 /// var customOptions = new FaceMatchingOptions
 /// {
@@ -221,7 +221,7 @@ public record FaceMatchingOptions
     /// Adjust based on your security requirements and false positive tolerance.
     /// </remarks>
     public float MinimumSimilarity { get; init; } = 0.7f;
-    
+
     /// <summary>
     /// Gets or initializes the distance metric to use for face comparison.
     /// </summary>
@@ -233,7 +233,7 @@ public record FaceMatchingOptions
     /// as it's invariant to embedding magnitude and well-suited for high-dimensional spaces.
     /// </remarks>
     public DistanceMetric Metric { get; init; } = DistanceMetric.CosineSimilarity;
-    
+
     /// <summary>
     /// Gets or initializes the maximum number of matches to return.
     /// </summary>
@@ -253,7 +253,7 @@ public record FaceMatchingOptions
     /// Options with 0.7 minimum similarity, cosine similarity metric, and 10 max results.
     /// </value>
     public static FaceMatchingOptions Default => new();
-    
+
     /// <summary>
     /// Gets high security matching options for access control and verification.
     /// </summary>
@@ -265,7 +265,7 @@ public record FaceMatchingOptions
     /// building access control or financial transaction verification.
     /// </remarks>
     public static FaceMatchingOptions HighSecurity => new() { MinimumSimilarity = 0.85f };
-    
+
     /// <summary>
     /// Gets low security matching options for social or convenience applications.
     /// </summary>
@@ -293,7 +293,7 @@ public enum DistanceMetric
     /// Invariant to vector magnitude, making it ideal for face recognition.
     /// </remarks>
     CosineSimilarity,
-    
+
     /// <summary>
     /// Euclidean distance metric.
     /// Measures the straight-line distance between two points.
@@ -302,5 +302,5 @@ public enum DistanceMetric
     /// Lower values indicate higher similarity. For normalized vectors,
     /// relates to cosine similarity as: d = sqrt(2 - 2 * cos_sim).
     /// </remarks>
-    EuclideanDistance
+    EuclideanDistance,
 }

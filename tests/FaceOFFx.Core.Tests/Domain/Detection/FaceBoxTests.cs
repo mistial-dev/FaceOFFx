@@ -1,6 +1,6 @@
+using AwesomeAssertions;
 using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
-using AwesomeAssertions;
 using NUnit.Framework;
 
 namespace FaceOFFx.Core.Tests.Domain.Detection;
@@ -39,6 +39,10 @@ public class FaceBoxTests
         result.Value.Height.Should().Be(200);
     }
 
+    /// <summary>
+    /// Tests that creating a FaceBox with non-positive width returns failure.
+    /// </summary>
+    /// <param name="width">The width value to test.</param>
     [TestCase(0)]
     [TestCase(-1)]
     [TestCase(-100)]
@@ -50,6 +54,10 @@ public class FaceBoxTests
         result.Error.Should().Contain("Width must be positive");
     }
 
+    /// <summary>
+    /// Tests that creating a FaceBox with non-positive height returns failure.
+    /// </summary>
+    /// <param name="height">The height value to test.</param>
     [TestCase(0)]
     [TestCase(-1)]
     [TestCase(-100)]
@@ -61,6 +69,9 @@ public class FaceBoxTests
         result.Error.Should().Contain("Height must be positive");
     }
 
+    /// <summary>
+    /// Tests that FaceBox properties are calculated correctly.
+    /// </summary>
     [Test]
     public void Properties_ShouldCalculateCorrectly()
     {
@@ -73,6 +84,9 @@ public class FaceBoxTests
         box.Area.Should().Be(20000);
     }
 
+    /// <summary>
+    /// Tests that the center point is calculated correctly.
+    /// </summary>
     [Test]
     public void Center_ShouldCalculateCorrectly()
     {
@@ -82,6 +96,12 @@ public class FaceBoxTests
         box.Center.Y.Should().Be(120);
     }
 
+    /// <summary>
+    /// Tests point containment logic for various coordinates.
+    /// </summary>
+    /// <param name="x">The X coordinate to test.</param>
+    /// <param name="y">The Y coordinate to test.</param>
+    /// <param name="expected">The expected containment result.</param>
     [TestCase(60, 120, true)]
     [TestCase(10, 20, true)]
     [TestCase(110, 220, true)]
@@ -97,6 +117,9 @@ public class FaceBoxTests
         box.Contains(point).Should().Be(expected);
     }
 
+    /// <summary>
+    /// Tests that IoU of identical boxes returns 1.0.
+    /// </summary>
     [Test]
     public void IntersectionOverUnion_WithIdenticalBoxes_ShouldReturn1()
     {
@@ -106,6 +129,9 @@ public class FaceBoxTests
         box1.IntersectionOverUnion(box2).Should().Be(1.0f);
     }
 
+    /// <summary>
+    /// Tests that IoU of non-overlapping boxes returns 0.0.
+    /// </summary>
     [Test]
     public void IntersectionOverUnion_WithNoOverlap_ShouldReturn0()
     {
@@ -115,6 +141,9 @@ public class FaceBoxTests
         box1.IntersectionOverUnion(box2).Should().Be(0.0f);
     }
 
+    /// <summary>
+    /// Tests that IoU calculates correctly for partial overlap.
+    /// </summary>
     [Test]
     public void IntersectionOverUnion_WithPartialOverlap_ShouldCalculateCorrectly()
     {
@@ -130,6 +159,10 @@ public class FaceBoxTests
         iou.Should().BeApproximately(expectedIou, 0.001f);
     }
 
+    /// <summary>
+    /// Tests that scaling applies to all dimensions correctly.
+    /// </summary>
+    /// <param name="factor">The scale factor to apply.</param>
     [TestCase(2.0f)]
     [TestCase(0.5f)]
     [TestCase(1.5f)]
@@ -145,6 +178,10 @@ public class FaceBoxTests
         scaled.Height.Should().Be(200 * factor);
     }
 
+    /// <summary>
+    /// Tests that expansion works correctly for various pixel amounts.
+    /// </summary>
+    /// <param name="pixels">The number of pixels to expand by.</param>
     [TestCase(10)]
     [TestCase(-5)]
     [TestCase(0)]
@@ -160,6 +197,9 @@ public class FaceBoxTests
         expanded.Height.Should().Be(200 + 2 * pixels);
     }
 
+    /// <summary>
+    /// Tests equality comparison between FaceBox instances.
+    /// </summary>
     [Test]
     public void Equality_ShouldWorkCorrectly()
     {
@@ -171,6 +211,9 @@ public class FaceBoxTests
         box1.Should().NotBe(box3);
     }
 
+    /// <summary>
+    /// Tests that ToString provides a useful string representation.
+    /// </summary>
     [Test]
     public void ToString_ShouldProvideUsefulRepresentation()
     {
@@ -184,11 +227,23 @@ public class FaceBoxTests
         str.Should().Contain("200");
     }
 
+    /// <summary>
+    /// Tests creation with extreme coordinate values.
+    /// </summary>
+    /// <param name="x">The X coordinate.</param>
+    /// <param name="y">The Y coordinate.</param>
+    /// <param name="width">The width value.</param>
+    /// <param name="height">The height value.</param>
     [TestCase(float.MinValue, 0, 100, 100)]
     [TestCase(float.MaxValue, 0, 100, 100)]
     [TestCase(0, float.MinValue, 100, 100)]
     [TestCase(0, float.MaxValue, 100, 100)]
-    public void Create_WithExtremeCoordinates_ShouldHandleCorrectly(float x, float y, float width, float height)
+    public void Create_WithExtremeCoordinates_ShouldHandleCorrectly(
+        float x,
+        float y,
+        float width,
+        float height
+    )
     {
         var result = FaceBox.Create(x, y, width, height);
 
@@ -197,6 +252,9 @@ public class FaceBoxTests
         result.Value.Y.Should().Be(y);
     }
 
+    /// <summary>
+    /// Tests that IoU of boxes with touching edges returns 0.
+    /// </summary>
     [Test]
     public void IntersectionOverUnion_WithTouchingEdges_ShouldReturn0()
     {
@@ -206,6 +264,9 @@ public class FaceBoxTests
         box1.IntersectionOverUnion(box2).Should().Be(0.0f);
     }
 
+    /// <summary>
+    /// Tests that negative scale factors invert positions.
+    /// </summary>
     [Test]
     public void Scale_WithNegativeFactor_ShouldInvertPositions()
     {

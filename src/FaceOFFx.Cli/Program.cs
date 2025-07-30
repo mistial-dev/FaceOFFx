@@ -17,7 +17,7 @@ services.AddLogging(builder =>
 {
     // Clear existing providers first
     builder.ClearProviders();
-    
+
     // Set minimum level based on debug flag
     if (hasDebugFlag)
     {
@@ -27,7 +27,7 @@ services.AddLogging(builder =>
     {
         builder.SetMinimumLevel(LogLevel.Warning);
     }
-    
+
     // Use simple console logging for now
     builder.AddSimpleConsole(options =>
     {
@@ -41,10 +41,7 @@ services.AddLogging(builder =>
 services.AddFaceOffxCli();
 
 // Display banner
-AnsiConsole.Write(
-    new FigletText("FaceOFFx")
-        .LeftJustified()
-        .Color(Color.Blue));
+AnsiConsole.Write(new FigletText("FaceOFFx").LeftJustified().Color(Color.Blue));
 
 AnsiConsole.MarkupLine("[grey]\"I want to take his face... off.\"[/] - Face/Off (1997)");
 AnsiConsole.WriteLine();
@@ -60,15 +57,17 @@ app.Configure(config =>
     config.ValidateExamples();
 
     // PIV Commands - single clean command
-    config.AddCommand<ProcessCommand>("process")
+    config
+        .AddCommand<ProcessCommand>("process")
         .WithDescription("Process images for PIV compliance (JPEG 2000 output)")
         .WithExample("process", "photo.jpg")
         .WithExample("process", "photo.jpg", "--output", "result.jp2")
         .WithExample("process", "photo.jpg", "--verbose");
 
-    // ROI Commands - visualize facial regions for JPEG 2000 encoding
-    config.AddCommand<RoiCommand>("roi")
-        .WithDescription("Visualize facial ROI regions for JPEG 2000 encoding")
+    // ROI Commands - visualize facial region for JPEG 2000 encoding
+    config
+        .AddCommand<RoiCommand>("roi")
+        .WithDescription("Visualize facial ROI Inner Region for JPEG 2000 encoding")
         .WithExample("roi", "photo.jpg")
         .WithExample("roi", "photo.jpg", "--output", "roi_visual.jpg", "--show-landmarks")
         .WithExample("roi", "photo.jpg", "--stroke-width", "5", "--verbose");

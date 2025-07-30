@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Infrastructure.Services;
 using FaceOFFx.Tests.Common;
@@ -7,7 +8,6 @@ using NUnit.Framework;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using AwesomeAssertions;
 
 namespace FaceOFFx.Infrastructure.Tests.Services;
 
@@ -62,9 +62,9 @@ public class OnnxLandmarkExtractorTests : IntegrationTestBase
     /// - The operation results in success.
     /// - The returned landmarks are not null.
     /// - The output contains the expected number of landmarks.
-    /// <return>
+    /// <returns>
     /// Asserts the correctness of the result produced by the `ExtractLandmarksAsync` method.
-    /// </return>
+    /// </returns>
     [Test]
     public async Task ExtractLandmarksAsync_WithValidFaceRegion_ReturnsLandmarks()
     {
@@ -201,6 +201,7 @@ public class OnnxLandmarkExtractorTests : IntegrationTestBase
     /// <returns>
     /// A task that represents the asynchronous operation. The task result validates
     /// whether the landmarks correctly follow the face structure.
+    /// </returns>
     [Test]
     public async Task ExtractLandmarksAsync_LandmarksFollowFaceStructure()
     {
@@ -229,7 +230,7 @@ public class OnnxLandmarkExtractorTests : IntegrationTestBase
     /// in unit tests to simulate a graphical input for landmark
     /// extraction.
     /// <returns>
-    /// A new instance of an Image<Rgba32> with defined dimensions and gradient texture.
+    /// A new instance of an Image&lt;Rgba32&gt; with defined dimensions and gradient texture.
     /// </returns>
     private static Image<Rgba32> CreateTestImage()
     {

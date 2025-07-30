@@ -34,7 +34,7 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// <code>
 /// // Check if a detected face is suitable for recognition
 /// var headPose = new HeadPose(yaw: 5f, pitch: -10f, roll: 2f);
-/// 
+///
 /// if (headPose.IsFrontal(maxDeviationDegrees: 20f))
 /// {
 ///     Console.WriteLine("Face is frontal enough for recognition");
@@ -43,17 +43,13 @@ namespace FaceOFFx.Core.Domain.Detection;
 /// {
 ///     Console.WriteLine($"Face is turned: Yaw={headPose.Yaw}°, Pitch={headPose.Pitch}°");
 /// }
-/// 
+///
 /// // Check for specific pose conditions
 /// bool isLookingDown = headPose.Pitch &lt; -30f;
 /// bool isProfileView = Math.Abs(headPose.Yaw) &gt; 60f;
 /// </code>
 /// </example>
-public sealed record HeadPose(
-    float Yaw,   
-    float Pitch, 
-    float Roll   
-)
+public sealed record HeadPose(float Yaw, float Pitch, float Roll)
 {
     /// <summary>
     /// Gets a head pose representing a neutral, forward-facing orientation.
@@ -64,7 +60,7 @@ public sealed record HeadPose(
     /// is available, or to represent an ideal frontal face position.
     /// </remarks>
     public static HeadPose Neutral => new(0, 0, 0);
-    
+
     /// <summary>
     /// Determines whether the head pose is approximately frontal based on deviation thresholds.
     /// </summary>
@@ -91,16 +87,16 @@ public sealed record HeadPose(
     /// <example>
     /// <code>
     /// var pose = new HeadPose(yaw: 12f, pitch: 8f, roll: 3f);
-    /// 
+    ///
     /// // Strict check for biometric capture
     /// bool isStrictlyFrontal = pose.IsFrontal(10f);  // returns false
-    /// 
+    ///
     /// // Relaxed check for detection
     /// bool isGenerallyFrontal = pose.IsFrontal(15f); // returns true
     /// </code>
     /// </example>
     public bool IsFrontal(float maxDeviationDegrees = 15f) =>
-        Math.Abs(Yaw) <= maxDeviationDegrees &&
-        Math.Abs(Pitch) <= maxDeviationDegrees &&
-        Math.Abs(Roll) <= maxDeviationDegrees;
+        Math.Abs(Yaw) <= maxDeviationDegrees
+        && Math.Abs(Pitch) <= maxDeviationDegrees
+        && Math.Abs(Roll) <= maxDeviationDegrees;
 }

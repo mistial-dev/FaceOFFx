@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace FaceOFFx.Core.Domain.Common;
 
 /// <summary>
@@ -14,20 +16,21 @@ namespace FaceOFFx.Core.Domain.Common;
 /// // Create points
 /// var point1 = new Point2D(100.5f, 200.3f);
 /// var point2 = new Point2D(150.7f, 250.1f);
-/// 
+///
 /// // Calculate distance
 /// float distance = point1.DistanceTo(point2);
-/// 
+///
 /// // Vector operations
 /// var midpoint = (point1 + point2) * 0.5f;
 /// var offset = point2 - point1;
-/// 
+///
 /// // Use predefined origin
 /// var origin = Point2D.Zero;
 /// </code>
 /// </example>
 /// <param name="X">The X-coordinate of the point (horizontal position).</param>
 /// <param name="Y">The Y-coordinate of the point (vertical position).</param>
+[PublicAPI]
 public record Point2D(float X, float Y)
 {
     /// <summary>
@@ -71,7 +74,7 @@ public record Point2D(float X, float Y)
     /// This operation is useful for translating points or combining offsets.
     /// </remarks>
     public Point2D Add(Point2D other) => new(X + other.X, Y + other.Y);
-    
+
     /// <summary>
     /// Subtracts another point from this point, treating them as vectors.
     /// </summary>
@@ -81,7 +84,7 @@ public record Point2D(float X, float Y)
     /// This operation is useful for calculating offsets or relative positions between points.
     /// </remarks>
     public Point2D Subtract(Point2D other) => new(X - other.X, Y - other.Y);
-    
+
     /// <summary>
     /// Scales this point by a scalar factor.
     /// </summary>
@@ -100,7 +103,7 @@ public record Point2D(float X, float Y)
     /// <param name="right">The second point.</param>
     /// <returns>A new point representing the sum of the two points.</returns>
     public static Point2D operator +(Point2D left, Point2D right) => left.Add(right);
-    
+
     /// <summary>
     /// Subtracts one point from another using the - operator.
     /// </summary>
@@ -108,7 +111,7 @@ public record Point2D(float X, float Y)
     /// <param name="right">The point to subtract.</param>
     /// <returns>A new point representing the difference.</returns>
     public static Point2D operator -(Point2D left, Point2D right) => left.Subtract(right);
-    
+
     /// <summary>
     /// Multiplies a point by a scalar value using the * operator.
     /// </summary>
@@ -116,7 +119,7 @@ public record Point2D(float X, float Y)
     /// <param name="scalar">The scaling factor.</param>
     /// <returns>A new point with scaled coordinates.</returns>
     public static Point2D operator *(Point2D point, float scalar) => point.Scale(scalar);
-    
+
     /// <summary>
     /// Multiplies a point by a scalar value using the * operator (commutative).
     /// </summary>

@@ -1,4 +1,5 @@
 using FaceOFFx.Core.Domain.Detection;
+using JetBrains.Annotations;
 
 namespace FaceOFFx.Core.Domain.Transformations;
 
@@ -20,6 +21,7 @@ namespace FaceOFFx.Core.Domain.Transformations;
 /// information is provided when creating a result.
 /// </para>
 /// </remarks>
+[PublicAPI]
 public sealed record PivResult
 {
     /// <summary>
@@ -34,7 +36,7 @@ public sealed record PivResult
     /// size (420x560), and orientation. For JPEG 2000 format, includes ROI encoding.
     /// </remarks>
     public required byte[] ImageData { get; init; }
-    
+
     /// <summary>
     /// MIME type of the output image format.
     /// </summary>
@@ -46,7 +48,7 @@ public sealed record PivResult
     /// quality. PNG may be used when lossless compression is required.
     /// </remarks>
     public required string MimeType { get; init; }
-    
+
     /// <summary>
     /// Dimensions of the output image in pixels.
     /// </summary>
@@ -55,7 +57,7 @@ public sealed record PivResult
     /// For PIV compliance, this should always be 420x560 pixels.
     /// </value>
     public required ImageDimensions Dimensions { get; init; }
-    
+
     /// <summary>
     /// The transformation parameters that were applied to produce the PIV-compliant image.
     /// </summary>
@@ -68,7 +70,7 @@ public sealed record PivResult
     /// modified and for potential reverse transformation if needed.
     /// </remarks>
     public required PivTransform AppliedTransform { get; init; }
-    
+
     /// <summary>
     /// The original face detection result that was used as the basis for transformation.
     /// </summary>
@@ -81,7 +83,7 @@ public sealed record PivResult
     /// face detection, useful for quality assurance and debugging.
     /// </remarks>
     public required DetectedFace SourceFace { get; init; }
-    
+
     /// <summary>
     /// Gets a value indicating whether the result meets PIV compliance requirements.
     /// </summary>
@@ -95,7 +97,7 @@ public sealed record PivResult
     /// - Acceptable rotation correction (within ±5 degrees)
     /// </remarks>
     public bool IsPivCompliant => AppliedTransform.IsPivCompliant;
-    
+
     /// <summary>
     /// Gets a human-readable summary of the transformations applied during processing.
     /// </summary>
@@ -104,7 +106,7 @@ public sealed record PivResult
     /// such as "PIV transformation: rotated 2.3°, cropped to 85%, resized to 420x560".
     /// </value>
     public string ProcessingSummary { get; init; } = string.Empty;
-    
+
     /// <summary>
     /// Gets a collection of warnings generated during processing.
     /// </summary>
@@ -119,7 +121,7 @@ public sealed record PivResult
     /// - Image quality concerns
     /// </remarks>
     public IReadOnlyList<string> Warnings { get; init; } = Array.Empty<string>();
-    
+
     /// <summary>
     /// Gets additional metadata about the processing operation.
     /// </summary>
@@ -133,9 +135,9 @@ public sealed record PivResult
     /// - "ProcessingOptions": Options used during processing
     /// - "ProcessingTime": Time taken to complete transformation
     /// </remarks>
-    public IReadOnlyDictionary<string, object> Metadata { get; init; } = 
+    public IReadOnlyDictionary<string, object> Metadata { get; init; } =
         new Dictionary<string, object>();
-    
+
     /// <summary>
     /// Creates a successful PIV result with all required information.
     /// </summary>
@@ -156,9 +158,9 @@ public sealed record PivResult
     ///     new ImageDimensions(420, 560),
     ///     transform,
     ///     detectedFace,
-    ///     metadata: new Dictionary&lt;string, object&gt; 
-    ///     { 
-    ///         ["ProcessingTime"] = "150ms" 
+    ///     metadata: new Dictionary&lt;string, object&gt;
+    ///     {
+    ///         ["ProcessingTime"] = "150ms"
     ///     });
     /// </code>
     /// </example>
@@ -170,7 +172,8 @@ public sealed record PivResult
         DetectedFace sourceFace,
         string? summary = null,
         IReadOnlyList<string>? warnings = null,
-        IReadOnlyDictionary<string, object>? metadata = null)
+        IReadOnlyDictionary<string, object>? metadata = null
+    )
     {
         return new PivResult
         {
@@ -181,10 +184,10 @@ public sealed record PivResult
             SourceFace = sourceFace,
             ProcessingSummary = summary ?? GenerateDefaultSummary(appliedTransform),
             Warnings = warnings ?? Array.Empty<string>(),
-            Metadata = metadata ?? new Dictionary<string, object>()
+            Metadata = metadata ?? new Dictionary<string, object>(),
         };
     }
-    
+
     /// <summary>
     /// Generates a default processing summary based on the applied transformation.
     /// </summary>
@@ -193,7 +196,7 @@ public sealed record PivResult
     private static string GenerateDefaultSummary(PivTransform transform)
     {
         var operations = new List<string>();
-        
+
         if (Math.Abs(transform.RotationDegrees) > 0.1f)
         {
             operations.Add($"rotated {transform.RotationDegrees:F1}°");
@@ -210,20 +213,22 @@ public sealed record PivResult
                 operations.Add($"downscaled {transform.ScaleFactor:F2}x");
             }
         }
-        
+
         var cropArea = transform.CropRegion.Width * transform.CropRegion.Height;
         if (cropArea < 0.99f) // Less than 99% means significant cropping
         {
             operations.Add($"cropped to {cropArea:P0}");
         }
 
-        operations.Add($"resized to {transform.TargetDimensions.Width}x{transform.TargetDimensions.Height}");
-        
-        return operations.Any() 
+        operations.Add(
+            $"resized to {transform.TargetDimensions.Width}x{transform.TargetDimensions.Height}"
+        );
+
+        return operations.Any()
             ? $"Applied transformations: {string.Join(", ", operations)}"
             : "No transformations needed - image already PIV compliant";
     }
-    
+
     /// <summary>
     /// Validates that this PIV result is complete and meets all requirements.
     /// </summary>
@@ -259,7 +264,6 @@ public sealed record PivResult
     }
 }
 
-
 /// <summary>
 /// Configuration options for PIV (Personal Identity Verification) image processing.
 /// </summary>
@@ -277,6 +281,7 @@ public sealed record PivResult
 /// - <see cref="Fast"/>: Optimized for speed with acceptable quality
 /// </para>
 /// </remarks>
+[PublicAPI]
 public sealed record PivProcessingOptions
 {
     /// <summary>
@@ -287,7 +292,7 @@ public sealed record PivProcessingOptions
     /// Default is 0.7 bits per pixel for ~20KB files.
     /// </value>
     public float BaseRate { get; init; } = 0.7f;
-    
+
     /// <summary>
     /// Gets the ROI resolution level priority setting.
     /// </summary>
@@ -297,7 +302,7 @@ public sealed record PivProcessingOptions
     /// Default is 3 (smoothest transitions).
     /// </value>
     public int RoiStartLevel { get; init; } = 3;
-    
+
     /// <summary>
     /// Gets a value indicating whether to preserve EXIF metadata in the output image.
     /// </summary>
@@ -309,7 +314,7 @@ public sealed record PivProcessingOptions
     /// and to reduce file size. Enable only if metadata is specifically required.
     /// </remarks>
     public bool PreserveExifMetadata { get; init; } = false;
-    
+
     /// <summary>
     /// Gets the minimum confidence threshold for face detection.
     /// </summary>
@@ -322,7 +327,7 @@ public sealed record PivProcessingOptions
     /// faces are processed.
     /// </remarks>
     public float MinFaceConfidence { get; init; } = 0.8f;
-    
+
     /// <summary>
     /// Gets a value indicating whether to require exactly one face in the image.
     /// </summary>
@@ -334,7 +339,7 @@ public sealed record PivProcessingOptions
     /// processing fails if multiple faces are detected to prevent ambiguity.
     /// </remarks>
     public bool RequireSingleFace { get; init; } = true;
-    
+
     /// <summary>
     /// Gets the default PIV processing options with balanced settings.
     /// </summary>
@@ -346,7 +351,7 @@ public sealed record PivProcessingOptions
     /// Suitable for most PIV processing scenarios with good quality/performance balance.
     /// </remarks>
     public static PivProcessingOptions Default => new();
-    
+
     /// <summary>
     /// Gets high quality processing options optimized for archival and maximum fidelity.
     /// </summary>
@@ -359,14 +364,15 @@ public sealed record PivProcessingOptions
     /// official credential production or long-term archival storage.
     /// Results in larger file sizes but ensures maximum biometric accuracy.
     /// </remarks>
-    public static PivProcessingOptions HighQuality => new()
-    {
-        BaseRate = 2.0f,
-        RoiStartLevel = 2,
-        PreserveExifMetadata = true,
-        MinFaceConfidence = 0.9f
-    };
-    
+    public static PivProcessingOptions HighQuality =>
+        new()
+        {
+            BaseRate = 2.0f,
+            RoiStartLevel = 2,
+            PreserveExifMetadata = true,
+            MinFaceConfidence = 0.9f,
+        };
+
     /// <summary>
     /// Gets fast processing options optimized for speed with acceptable quality.
     /// </summary>
@@ -379,10 +385,11 @@ public sealed record PivProcessingOptions
     /// where speed is more important than maximum quality. Still maintains
     /// PIV compliance but with faster processing.
     /// </remarks>
-    public static PivProcessingOptions Fast => new()
-    {
-        BaseRate = 0.8f,
-        RoiStartLevel = 0,
-        MinFaceConfidence = 0.7f
-    };
+    public static PivProcessingOptions Fast =>
+        new()
+        {
+            BaseRate = 0.8f,
+            RoiStartLevel = 0,
+            MinFaceConfidence = 0.7f,
+        };
 }

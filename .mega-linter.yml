@@ -14,7 +14,8 @@ APPLY_FIXES: all
 # default
 # ENABLE_LINTERS:
 
-# DISABLE:
+DISABLE:
+  - CSHARP_ROSLYNATOR # Disable Roslynator due to System.Composition.AttributedModel version conflict
 # - COPYPASTE # Uncomment to disable checks of excessive copy-pastes
 # - SPELL # Uncomment to disable checks of spelling mistakes
 

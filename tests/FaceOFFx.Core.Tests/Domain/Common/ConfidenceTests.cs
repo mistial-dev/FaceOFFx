@@ -1,5 +1,5 @@
-using FaceOFFx.Core.Domain.Common;
 using AwesomeAssertions;
+using FaceOFFx.Core.Domain.Common;
 using NUnit.Framework;
 
 namespace FaceOFFx.Core.Tests.Domain.Common;

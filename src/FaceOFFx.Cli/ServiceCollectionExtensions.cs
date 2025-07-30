@@ -16,11 +16,10 @@ public static class ServiceCollectionExtensions
     /// Registers all FaceOFFx services.
     /// </summary>
     [UsedImplicitly]
-    public static IServiceCollection AddFaceOffxCli(
-        this IServiceCollection services)
+    public static IServiceCollection AddFaceOffxCli(this IServiceCollection services)
     {
         // Note: Cannot log during service registration as services aren't built yet
-        
+
         // Register core services as Scoped to avoid early instantiation
         services.AddScoped<IFaceDetector>(sp =>
         {
@@ -33,7 +32,7 @@ public static class ServiceCollectionExtensions
             var extractorLogger = sp.GetRequiredService<ILogger<OnnxLandmarkExtractor>>();
             return new OnnxLandmarkExtractor(extractorLogger);
         });
-        
+
         // Use Transient for Jpeg2000EncoderService to avoid static cleanup issues
         services.AddTransient<IJpeg2000Encoder>(sp =>
         {
@@ -43,7 +42,7 @@ public static class ServiceCollectionExtensions
 
         // Register CLI commands
         services.AddTransient<ProcessCommand>();
-        
+
         services.AddTransient<RoiCommand>();
 
         return services;

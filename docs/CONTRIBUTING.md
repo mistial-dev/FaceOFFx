@@ -1,6 +1,7 @@
 # Contributing to FaceOFFx
 
-We welcome contributions to FaceOFFx! This document provides guidelines for contributing to the project.
+We welcome contributions to FaceOFFx! This document provides guidelines for
+contributing to the project.
 
 ## Getting Started
 
@@ -41,8 +42,8 @@ dotnet run --project src/FaceOFFx.Cli -- process sample.jpg
 
 - Use C# 12.0 features where appropriate
 - Enable nullable reference types
-- Follow functional programming patterns (Result<T>, Maybe<T>)
-- No nulls in domain models - use Maybe<T> for optional values
+- Follow functional programming patterns (Result\<T>, Maybe\<T>)
+- No nulls in domain models - use Maybe\<T> for optional values
 - Direct dependencies - use libraries directly without wrapper abstractions
 
 ### Formatting
@@ -140,7 +141,7 @@ We welcome feature requests! Please:
 
 ### Error Handling
 
-- Use Result<T> for operations that can fail
+- Use Result\<T> for operations that can fail
 - Provide meaningful error messages
 - Fail fast with descriptive errors
 - Log errors appropriately

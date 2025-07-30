@@ -1,4 +1,5 @@
 using FaceOFFx.Core.Domain.Detection;
+using JetBrains.Annotations;
 
 namespace FaceOFFx.Core.Domain.Transformations;
 
@@ -21,6 +22,7 @@ namespace FaceOFFx.Core.Domain.Transformations;
 /// - Maintains 3:4 aspect ratio throughout
 /// </para>
 /// </remarks>
+[PublicAPI]
 public sealed record PivTransform
 {
     /// <summary>
@@ -35,7 +37,7 @@ public sealed record PivTransform
     /// they are horizontally aligned in the final image.
     /// </remarks>
     public float RotationDegrees { get; init; }
-    
+
     /// <summary>
     /// Gets the crop region defining which portion of the image to extract.
     /// </summary>
@@ -50,7 +52,7 @@ public sealed record PivTransform
     /// - Include appropriate margins around the face
     /// </remarks>
     public required CropRect CropRegion { get; init; }
-    
+
     /// <summary>
     /// Gets the scale factor applied during the resize operation.
     /// </summary>
@@ -62,7 +64,7 @@ public sealed record PivTransform
     /// 420x560 pixels while maintaining aspect ratio and image quality.
     /// </remarks>
     public float ScaleFactor { get; init; }
-    
+
     /// <summary>
     /// Gets the final dimensions of the PIV-compliant image.
     /// </summary>
@@ -74,7 +76,7 @@ public sealed record PivTransform
     /// government credentials and ensure consistency across all PIV systems.
     /// </remarks>
     public required ImageDimensions TargetDimensions { get; init; }
-    
+
     /// <summary>
     /// Gets a value indicating whether this transformation results in a PIV-compliant image.
     /// </summary>
@@ -88,7 +90,7 @@ public sealed record PivTransform
     /// - Proper face positioning and sizing
     /// </remarks>
     public bool IsPivCompliant { get; init; }
-    
+
     /// <summary>
     /// Creates an identity transformation that performs no modifications.
     /// </summary>
@@ -100,15 +102,16 @@ public sealed record PivTransform
     /// Note that an identity transform is typically not PIV-compliant unless the
     /// source image already meets all requirements.
     /// </remarks>
-    public static PivTransform Identity(ImageDimensions sourceDimensions) => new()
-    {
-        RotationDegrees = 0f,
-        CropRegion = CropRect.Full,
-        ScaleFactor = 1f,
-        TargetDimensions = sourceDimensions,
-        IsPivCompliant = false
-    };
-    
+    public static PivTransform Identity(ImageDimensions sourceDimensions) =>
+        new()
+        {
+            RotationDegrees = 0f,
+            CropRegion = CropRect.Full,
+            ScaleFactor = 1f,
+            TargetDimensions = sourceDimensions,
+            IsPivCompliant = false,
+        };
+
     /// <summary>
     /// Validates that this transformation contains reasonable and valid parameters.
     /// </summary>
@@ -162,49 +165,50 @@ public sealed record PivTransform
 /// <example>
 /// <code>
 /// // Crop center 50% of image
-/// var centerCrop = new CropRect 
-/// { 
-///     Left = 0.25f, 
-///     Top = 0.25f, 
-///     Width = 0.5f, 
-///     Height = 0.5f 
+/// var centerCrop = new CropRect
+/// {
+///     Left = 0.25f,
+///     Top = 0.25f,
+///     Width = 0.5f,
+///     Height = 0.5f
 /// };
 /// </code>
 /// </example>
+[PublicAPI]
 public sealed record CropRect
 {
     /// <summary>
     /// Gets the normalized X coordinate of the left edge (0.0 = left edge, 1.0 = right edge).
     /// </summary>
     public float Left { get; init; }
-    
+
     /// <summary>
     /// Gets the normalized Y coordinate of the top edge (0.0 = top edge, 1.0 = bottom edge).
     /// </summary>
     public float Top { get; init; }
-    
+
     /// <summary>
     /// Gets the normalized width of the crop region (1.0 = full image width).
     /// </summary>
     public float Width { get; init; }
-    
+
     /// <summary>
     /// Gets the normalized height of the crop region (1.0 = full image height).
     /// </summary>
     public float Height { get; init; }
-    
+
     /// <summary>
     /// Gets the normalized X coordinate of the right edge.
     /// </summary>
     /// <value>The sum of <see cref="Left"/> and <see cref="Width"/>.</value>
     public float Right => Left + Width;
-    
+
     /// <summary>
     /// Gets the normalized Y coordinate of the bottom edge.
     /// </summary>
     /// <value>The sum of <see cref="Top"/> and <see cref="Height"/>.</value>
     public float Bottom => Top + Height;
-    
+
     /// <summary>
     /// Gets a crop rectangle representing the full image with no cropping.
     /// </summary>
@@ -212,8 +216,15 @@ public sealed record CropRect
     /// <remarks>
     /// Use this when no cropping is needed or as a default value.
     /// </remarks>
-    public static CropRect Full => new() { Left = 0f, Top = 0f, Width = 1f, Height = 1f };
-    
+    public static CropRect Full =>
+        new()
+        {
+            Left = 0f,
+            Top = 0f,
+            Width = 1f,
+            Height = 1f,
+        };
+
     /// <summary>
     /// Creates a crop rectangle from pixel coordinates by converting to normalized values.
     /// </summary>
@@ -236,14 +247,22 @@ public sealed record CropRect
     /// // Results in: Left=0.0625, Top=0.0833, Width=0.125, Height=0.1667
     /// </code>
     /// </example>
-    public static CropRect FromPixels(int x, int y, int width, int height, int imageWidth, int imageHeight) => new()
-    {
-        Left = (float)x / imageWidth,
-        Top = (float)y / imageHeight,
-        Width = (float)width / imageWidth,
-        Height = (float)height / imageHeight
-    };
-    
+    public static CropRect FromPixels(
+        int x,
+        int y,
+        int width,
+        int height,
+        int imageWidth,
+        int imageHeight
+    ) =>
+        new()
+        {
+            Left = (float)x / imageWidth,
+            Top = (float)y / imageHeight,
+            Width = (float)width / imageWidth,
+            Height = (float)height / imageHeight,
+        };
+
     /// <summary>
     /// Converts this normalized crop rectangle to a <see cref="FaceBox"/> with pixel coordinates.
     /// </summary>
@@ -261,11 +280,8 @@ public sealed record CropRect
     /// // Results in: X=200, Y=150, Width=400, Height=300
     /// </code>
     /// </example>
-    public FaceBox ToFaceBox(int imageWidth, int imageHeight) => 
-        FaceBox.Create(
-            Left * imageWidth,
-            Top * imageHeight,
-            Width * imageWidth,
-            Height * imageHeight
-        ).Value;
+    public FaceBox ToFaceBox(int imageWidth, int imageHeight) =>
+        FaceBox
+            .Create(Left * imageWidth, Top * imageHeight, Width * imageWidth, Height * imageHeight)
+            .Value;
 }

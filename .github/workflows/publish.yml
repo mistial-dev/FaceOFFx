@@ -6,6 +6,9 @@ on:
       - "v*"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   DOTNET_VERSION: "8.0.x"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true

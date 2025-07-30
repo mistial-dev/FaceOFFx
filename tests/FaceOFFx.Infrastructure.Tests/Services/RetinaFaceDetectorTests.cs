@@ -1,12 +1,12 @@
+using AwesomeAssertions;
 using FaceOFFx.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using AwesomeAssertions;
 using NSubstitute;
 using NUnit.Framework;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 namespace FaceOFFx.Infrastructure.Tests.Services;
 
@@ -26,6 +26,7 @@ public class RetinaFaceDetectorTests : IDisposable
     /// log entries during unit tests for the <see cref="RetinaFaceDetector"/>.
     /// </summary>
     private readonly ILogger<RetinaFaceDetector> _logger;
+
     /// <summary>
     /// Represents an instance of the RetinaFaceDetector used in tests for face detection operations.
     /// </summary>
@@ -232,7 +233,10 @@ public class RetinaFaceDetectorTests : IDisposable
     [TestCase(640, 480)]
     [TestCase(1024, 768)]
     [TestCase(1920, 1080)]
-    public async Task DetectFacesAsync_WithVariousImageSizes_ShouldHandleCorrectly(int width, int height)
+    public async Task DetectFacesAsync_WithVariousImageSizes_ShouldHandleCorrectly(
+        int width,
+        int height
+    )
     {
         using var image = new Image<Rgba32>(width, height);
         image.Mutate(ctx => ctx.Fill(Color.White));
