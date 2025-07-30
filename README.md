@@ -1,7 +1,7 @@
 # FaceOFFx – PIV-Compliant Facial Processing for .NET
 
 <p align="center">
-  <img src="docs/samples/roi/generic_guy_roi_300w.jpg" alt="FaceOFFx ROI Visualization" width="420">
+  <img src="https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg" alt="FaceOFFx ROI Visualization" width="420">
 </p>
 
 <p align="center">
@@ -99,11 +99,11 @@ See the power of FaceOFFx with these real-world examples. All images processed w
 
 | Original                                                            | PIV Processed                                                         | ROI Visualization                                             | Results                                                    |
 |---------------------------------------------------------------------|-----------------------------------------------------------------------|---------------------------------------------------------------|------------------------------------------------------------|
-| ![Generic Guy Original](docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy Processed](docs/samples/processed/generic_guy_300w.jpg) | ![Generic Guy ROI](docs/samples/roi/generic_guy_roi_300w.jpg) | Size: 20,647 bytes<br>Rotation: 0.4°<br>Head width: 240px  |
-| ![Bush Original](docs/samples/original/bush_300w.jpg)               | ![Bush Processed](docs/samples/processed/bush_300w.jpg)               | ![Bush ROI](docs/samples/roi/bush_roi_300w.jpg)               | Size: 20,607 bytes<br>Rotation: 3.0°<br>Head width: 240px  |
-| ![Trump Original](docs/samples/original/trump_300w.jpg)             | ![Trump Processed](docs/samples/processed/trump_300w.jpg)             | ![Trump ROI](docs/samples/roi/trump_roi_300w.jpg)             | Size: 20,592 bytes<br>Rotation: 1.5°<br>Head width: 240px  |
-| ![Johnson Original](docs/samples/original/johnson_300w.jpg)         | ![Johnson Processed](docs/samples/processed/johnson_300w.jpg)         | ![Johnson ROI](docs/samples/roi/johnson_roi_300w.jpg)         | Size: 20,581 bytes<br>Rotation: 0.2°<br>Head width: 240px  |
-| ![Starmer Original](docs/samples/original/starmer_300w.jpg)         | ![Starmer Processed](docs/samples/processed/starmer_300w.jpg)         | ![Starmer ROI](docs/samples/roi/starmer_roi_300w.jpg)         | Size: 20,645 bytes<br>Rotation: -1.7°<br>Head width: 240px |
+| ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_300w.jpg) | ![Generic Guy Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_300w.jpg) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg) | Size: 20,647 bytes<br>Rotation: 0.4°<br>Head width: 240px  |
+| ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_300w.jpg)               | ![Bush Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_300w.jpg)               | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi_300w.jpg)               | Size: 20,607 bytes<br>Rotation: 3.0°<br>Head width: 240px  |
+| ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_300w.jpg)             | ![Trump Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_300w.jpg)             | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi_300w.jpg)             | Size: 20,592 bytes<br>Rotation: 1.5°<br>Head width: 240px  |
+| ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_300w.jpg)         | ![Johnson Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_300w.jpg)         | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi_300w.jpg)         | Size: 20,581 bytes<br>Rotation: 0.2°<br>Head width: 240px  |
+| ![Starmer Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/starmer_300w.jpg)         | ![Starmer Processed](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_300w.jpg)         | ![Starmer ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/starmer_roi_300w.jpg)         | Size: 20,645 bytes<br>Rotation: -1.7°<br>Head width: 240px |
 
 ### Understanding the Visualizations
 
