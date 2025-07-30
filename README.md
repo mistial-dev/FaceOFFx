@@ -107,10 +107,10 @@ See the power of FaceOFFx with these real-world examples. All images processed w
 
 ### Understanding the Visualizations
 
-- **Green Box**: ROI region with highest quality preservation
+- **Red Box**: ROI region with highest quality preservation
 - **Blue Line (AA)**: Vertical center alignment
 - **Green Line (BB)**: Horizontal eye line (should be 55-60% from bottom)
-- **Purple Line (CC)**: Head width measurement (minimum 240px) - always level for aesthetics
+- **Purple Line (CC)**: Head width measurement (minimum 240px)
 
 ### Head Width Measurement (Line CC)
 
