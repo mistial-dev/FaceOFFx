@@ -20,8 +20,6 @@ public static class PivJpeg2000Encoder
             var pivImage = result.PivImage;
             var roiSet = result.RoiSet;
 
-            // Use provided quality parameters or defaults
-            var qualityParams = (baseRate, roiStartLevel);
 
             // The actual encoding will be done by infrastructure service
             // This is just a domain-level coordinator
