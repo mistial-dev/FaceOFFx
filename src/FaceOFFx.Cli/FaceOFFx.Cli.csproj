@@ -15,7 +15,7 @@
     
     <!-- NuGet Package Metadata -->
     <PackageId>FaceOFFx.Cli</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>FaceOFFx Contributors</Authors>
     <Company>FaceOFFx</Company>
     <Product>FaceOFFx CLI</Product>
@@ -36,11 +36,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FaceOFFx.Application\FaceOFFx.Application.csproj" />
-    <ProjectReference Include="..\..\src\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj" />
+    <ProjectReference Include="..\FaceOFFx.Core\FaceOFFx.Core.csproj" />
+    <ProjectReference Include="..\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj" />
+    <ProjectReference Include="..\FaceOFFx.Models\FaceOFFx.Models.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
     <PackageReference Include="Spectre.Console.Cli.Extensions.DependencyInjection" Version="0.10.1-preview.0.1" />
@@ -53,19 +59,5 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Ensure ONNX models are included in the tool package -->
-  <ItemGroup>
-    <Content Include="..\FaceOFFx.Models\Resources\**\*.onnx" 
-             CopyToOutputDirectory="PreserveNewest" 
-             Pack="true" 
-             PackagePath="tools/$(TargetFramework)/any/" />
-  </ItemGroup>
-
-  <!-- Exclude ONNX Runtime native binaries from tool package -->
-  <Target Name="ExcludeRuntimesFromPack" BeforeTargets="GenerateNuspec">
-    <ItemGroup>
-      <_PackageFiles Remove="@(_PackageFiles)" Condition="$([System.String]::Copy('%(_PackageFiles.PackagePath)').Contains('runtimes'))" />
-    </ItemGroup>
-  </Target>
 
 </Project>

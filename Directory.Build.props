@@ -21,7 +21,7 @@
     <PackageTags>face-recognition;face-detection;facial-landmarks;age-gender;emotion;onnx;machine-learning;computer-vision</PackageTags>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     
     <!-- Build Output -->
     <BaseOutputPath>$(MSBuildThisFileDirectory)artifacts\bin\$(MSBuildProjectName)\</BaseOutputPath>

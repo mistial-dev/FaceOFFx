@@ -10,12 +10,12 @@ public static class ModelRegistry
     /// <summary>
     /// RetinaFace model for face detection.
     /// </summary>
-    public const string FaceDetector = "FaceOFFx.Models.Resources.FaceDetector.onnx";
+    public const string FaceDetector = "FaceOFFx.Core.Models.Resources.FaceDetector.onnx";
 
     /// <summary>
     /// PFLD model for 68-point facial landmark detection.
     /// </summary>
-    public const string FaceLandmarks68 = "FaceOFFx.Models.Resources.landmarks_68_pfld.onnx";
+    public const string FaceLandmarks68 = "FaceOFFx.Core.Models.Resources.landmarks_68_pfld.onnx";
 
     /// <summary>
     /// Gets a model as a byte array from embedded resources

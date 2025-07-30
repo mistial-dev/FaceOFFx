@@ -1,6 +1,6 @@
 using FaceOFFx.Core.Abstractions;
-using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
+using FaceOFFx.Core.Domain.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;

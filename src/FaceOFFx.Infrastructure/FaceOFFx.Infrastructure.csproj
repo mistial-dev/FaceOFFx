@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="FaceOFFx.Application.Tests" />
+    <InternalsVisibleTo Include="FaceOFFx.Tests" />
   </ItemGroup>
 
 

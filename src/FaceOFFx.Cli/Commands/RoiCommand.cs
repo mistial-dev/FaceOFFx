@@ -1,11 +1,10 @@
 using System.ComponentModel;
 using CSharpFunctionalExtensions;
-using FaceOFFx.Application.Services;
+using FaceOFFx.Cli.Services;
 using FaceOFFx.Core.Abstractions;
 using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Core.Domain.Standards;
 using FaceOFFx.Core.Domain.Transformations;
-using FaceOFFx.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;

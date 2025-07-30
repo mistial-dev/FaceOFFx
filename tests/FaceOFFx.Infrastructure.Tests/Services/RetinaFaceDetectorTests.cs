@@ -1,4 +1,3 @@
-using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;

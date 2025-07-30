@@ -1,13 +1,7 @@
-using FaceOFFx.Core.Abstractions;
-using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using CSharpFunctionalExtensions;
 
 namespace FaceOFFx.Infrastructure.Services;
 

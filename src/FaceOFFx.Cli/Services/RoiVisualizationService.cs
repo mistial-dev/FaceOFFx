@@ -1,11 +1,14 @@
+using CSharpFunctionalExtensions;
+using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Core.Domain.Standards;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace FaceOFFx.Application.Services;
+namespace FaceOFFx.Cli.Services;
 
 /// <summary>
 /// Provides visualization services for facial ROI regions on images.
@@ -25,7 +28,7 @@ public static class RoiVisualizationService
     /// <summary>
     /// Color scheme for ROI visualization based on encoding priority.
     /// </summary>
-    private static readonly Dictionary<int, Color> PriorityColors = new()
+    private static readonly Dictionary<int, Color> PriorityColors = new Dictionary<int, Color>
     {
         { 3, Color.Red },     // Highest priority - Periocular region
         { 2, Color.Yellow },  // Medium priority - Orofacial region
@@ -344,38 +347,35 @@ public static class RoiVisualizationService
             var annotatedImage = sourceImage.Clone(ctx =>
             {
                 // Line AA (Vertical Center Line) - Blue if aligned, Red if misaligned
-                var lineAAColor = complianceValidation.IsAAAligned ? Color.Blue : Color.Red;
+                var lineAaColor = complianceValidation.IsAAAligned ? Color.Blue : Color.Red;
                 var verticalLine = new PointF[]
                 {
-                    new(pivLines.LineAA_X, 0),
-                    new(pivLines.LineAA_X, sourceImage.Height)
+                    new PointF(pivLines.LineAA_X, 0), new PointF(pivLines.LineAA_X, sourceImage.Height)
                 };
-                ctx.Draw(lineAAColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine)));
+                ctx.Draw(lineAaColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine)));
                 logger?.LogDebug("Drew Line AA (vertical center) at X={X} in {Color}", 
-                    pivLines.LineAA_X, lineAAColor);
+                    pivLines.LineAA_X, lineAaColor);
 
                 // Line BB (Horizontal Eye Line) - Green if positioned correctly, Orange if incorrect
-                var lineBBColor = complianceValidation.IsBBPositioned ? Color.Green : Color.Orange;
+                var lineBbColor = complianceValidation.IsBBPositioned ? Color.Green : Color.Orange;
                 var horizontalLine = new PointF[]
                 {
-                    new(0, pivLines.LineBB_Y),
-                    new(sourceImage.Width, pivLines.LineBB_Y)
+                    new PointF(0, pivLines.LineBB_Y), new PointF(sourceImage.Width, pivLines.LineBB_Y)
                 };
-                ctx.Draw(lineBBColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine)));
+                ctx.Draw(lineBbColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine)));
                 logger?.LogDebug("Drew Line BB (horizontal eye line) at Y={Y} in {Color}", 
-                    pivLines.LineBB_Y, lineBBColor);
+                    pivLines.LineBB_Y, lineBbColor);
 
                 // Line CC (Head Width Line) - Purple if valid ratio, Red if invalid
-                var lineCCColor = complianceValidation.IsCCRatioValid ? Color.Purple : Color.Red;
+                var lineCcColor = complianceValidation.IsCCRatioValid ? Color.Purple : Color.Red;
                 var headWidthLine = new PointF[]
                 {
-                    new(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y),
-                    new(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y)
+                    new PointF(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y), new PointF(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y)
                 };
-                ctx.Draw(lineCCColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine)));
+                ctx.Draw(lineCcColor, strokeWidth, new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine)));
                 logger?.LogDebug("Drew Line CC (head width) from ({X1},{Y1}) to ({X2},{Y2}) in {Color}", 
                     pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y,
-                    pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y, lineCCColor);
+                    pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y, lineCcColor);
 
                 // Draw key points as small circles
                 var pointRadius = strokeWidth + 1;

@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FaceOFFx.Cli\FaceOFFx.Cli.csproj" />
-    <ProjectReference Include="..\..\src\FaceOFFx.Application\FaceOFFx.Application.csproj" />
     <ProjectReference Include="..\..\src\FaceOFFx.Core\FaceOFFx.Core.csproj" />
     <ProjectReference Include="..\FaceOFFx.Tests.Common\FaceOFFx.Tests.Common.csproj" />
   </ItemGroup>
