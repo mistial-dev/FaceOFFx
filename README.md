@@ -1,22 +1,11 @@
 # FaceOFFx – PIV-Compliant Facial Processing for .NET
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg" alt="FaceOFFx ROI Visualization" width="420">
-</p>
+![FaceOFFx ROI Visualization](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg)
 
-<p align="center">
-  <em>"I want to take his face... off."</em><br>
-  — Castor Troy, <em>Face/Off</em> (1997)
-</p>
+*"I want to take his face... off."*  
+— Castor Troy, *Face/Off* (1997)
 
-<p align="center">
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#sample-gallery">Samples</a> •
-  <a href="#api-reference">API</a> •
-  <a href="#cli-usage">CLI</a> •
-  <a href="#configuration">Configuration</a>
-</p>
+[Quick Start](#quick-start) • [Installation](#installation) • [Samples](#sample-gallery) • [API](#api-reference) • [CLI](#cli-usage) • [Configuration](#configuration)
 
 ---
 
@@ -138,7 +127,7 @@ The head width measurement is crucial for PIV compliance but presents challenges
 // Load source image
 using var sourceImage = await Image.LoadAsync<Rgba32>("photo.jpg");
 
-// Process with default settings
+// Process with default settings (ROI enabled, no alignment)
 var result = await PivProcessor.ProcessAsync(
     sourceImage,
     faceDetector,
@@ -170,9 +159,7 @@ var result = await PivProcessor.ProcessAsync(
     landmarkExtractor, 
     jpeg2000Encoder,
     options,
-    enableRoi: true,        // Enable ROI encoding
-    roiAlign: false,        // Smooth transitions
-    logger);
+    logger);  // ROI enabled by default, no alignment by default
 
 // Access detailed results
 if (result.IsSuccess)
@@ -295,9 +282,8 @@ dotnet pack --configuration Release
 ```
 FaceOFFx/
 ├── src/
-│   ├── FaceOFFx.Core/           # Domain models and interfaces
+│   ├── FaceOFFx/                # Domain models and interfaces
 │   ├── FaceOFFx.Infrastructure/ # ONNX implementations
-│   ├── FaceOFFx.Application/    # Application services
 │   ├── FaceOFFx.Models/         # Embedded ONNX models
 │   └── FaceOFFx.Cli/           # Command-line interface
 ├── tests/                      # Unit and integration tests
@@ -320,9 +306,9 @@ FaceOFFx ensures compliance with government standards:
 
 The library uses advanced ROI (Region of Interest) encoding to optimize quality:
 
-1. **Inner Facial Region** - Highest quality for critical features
-2. **Background** - Lower quality for non-facial areas
-3. **Smooth Transitions** - Level 3 default prevents harsh boundaries
+- **Single Facial Region** - Highest quality preservation for the complete facial area
+- **Background** - Lower quality for non-facial areas  
+- **Smooth Transitions** - Level 3 default prevents harsh boundaries
 
 ### ONNX Models
 
@@ -392,7 +378,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<p align="center">
-  <em>Built with care for secure identity verification</em><br>
-  <em>"Face... off... No more drugs for that man!"</em> - <a href="https://www.youtube.com/watch?v=3bdv8MjwzxA">Watch Scene</a>
-</p>
+---
+
+*Built with care for secure identity verification*  
+*"Face... off... No more drugs for that man!"* - [Watch Scene](https://www.youtube.com/watch?v=3bdv8MjwzxA)

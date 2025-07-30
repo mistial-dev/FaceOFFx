@@ -42,11 +42,11 @@ jobs:
         dotnet tool install --global CycloneDX
         sudo apt-get update && sudo apt-get install -y jq
         
-        # Generate base SBOM
-        ~/.dotnet/tools/dotnet-CycloneDX . -o ./artifacts -j --filename sbom
+        # Generate base SBOM from solution file to include all dependencies
+        ~/.dotnet/tools/dotnet-CycloneDX FaceOFFx.sln -o ./artifacts -j --filename sbom
         
         # The tool creates 'sbom' file (without extension) in the artifacts directory
-        # Add ONNX models as ML components using jq
+        # This file contains all NuGet dependencies. Now add ONNX models as ML components using jq
         jq '.components += [
           {
             "type": "machine-learning-model",
