@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Domain.Common;
 using NUnit.Framework;
 

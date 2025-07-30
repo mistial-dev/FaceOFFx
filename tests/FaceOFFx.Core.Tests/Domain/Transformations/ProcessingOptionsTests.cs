@@ -40,7 +40,7 @@ public class ProcessingOptionsTests
 
         options.Strategy.Should().BeOfType<TargetSizeStrategy>();
         ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(14000);
-        options.RoiStartLevel.Should().Be(2); // More aggressive ROI for smaller size
+        options.RoiStartLevel.Should().Be(3); // Updated to smoothest transitions
         options.MinFaceConfidence.Should().Be(0.8f); // Default confidence
         options.RequireSingleFace.Should().BeTrue();
         options.EnableRoi.Should().BeTrue();
@@ -56,7 +56,7 @@ public class ProcessingOptionsTests
 
         options.Strategy.Should().BeOfType<TargetSizeStrategy>();
         ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(12000);
-        options.RoiStartLevel.Should().Be(1); // Aggressive ROI for minimal size
+        options.RoiStartLevel.Should().Be(3); // Updated to smoothest transitions
         options.MinFaceConfidence.Should().Be(0.8f); // Default confidence
         options.RequireSingleFace.Should().BeTrue();
         options.EnableRoi.Should().BeTrue();
@@ -120,10 +120,9 @@ public class ProcessingOptionsTests
     {
         var options = ProcessingOptions.Fast;
 
-        options.Strategy.Should().BeOfType<FixedRateStrategy>();
-        ((FixedRateStrategy)options.Strategy).Rate.Should().Be(0.5f);
-        options.RoiStartLevel.Should().Be(0); // Aggressive ROI for speed
-        options.MinFaceConfidence.Should().Be(0.7f); // Lower threshold for speed
+        options.Strategy.Should().BeOfType<TargetSizeStrategy>();
+        ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(20000); // Fast uses PivBalanced base
+        options.RoiStartLevel.Should().Be(3); // Uses PivBalanced ROI level
         options.MaxRetries.Should().Be(1); // Fewer retries for speed
         options.ProcessingTimeout.Should().Be(TimeSpan.FromSeconds(10)); // Shorter timeout
         options.RequireSingleFace.Should().BeTrue();

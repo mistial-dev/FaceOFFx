@@ -28,8 +28,9 @@ public record FaceLandmarks5(
     /// <summary>
     /// Calculates the rotation angle needed to level the eyes horizontally.
     /// </summary>
+    /// <param name="maxRotationDegrees">Maximum allowed rotation in degrees. Default is 5.0 for PIV compliance.</param>
     /// <returns>Rotation angle in degrees. Positive values indicate clockwise rotation needed.</returns>
-    public float CalculateEyeLevelRotation()
+    public float CalculateEyeLevelRotation(float maxRotationDegrees = 5.0f)
     {
         var deltaY = RightEye.Y - LeftEye.Y;
         var deltaX = RightEye.X - LeftEye.X;
@@ -37,8 +38,8 @@ public record FaceLandmarks5(
         // Calculate rotation to level eyes (negative to correct clockwise tilt)
         var rotationDegrees = -(float)(Math.Atan2(deltaY, deltaX) * 180 / Math.PI);
 
-        // Limit rotation to ±5 degrees for PIV compliance
-        return Math.Max(-5f, Math.Min(5f, rotationDegrees));
+        // Limit rotation to configured maximum
+        return Math.Max(-maxRotationDegrees, Math.Min(maxRotationDegrees, rotationDegrees));
     }
 
     /// <summary>

@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using FaceOFFx.Models;
 using JetBrains.Annotations;
 using SixLabors.ImageSharp;

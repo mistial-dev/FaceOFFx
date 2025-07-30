@@ -79,74 +79,68 @@ public static class RoiVisualizationService
             showLabels
         );
 
-            // Validate inputs
-            var validationResult = roiSet.Validate();
-            if (validationResult.IsFailure)
+        // Validate inputs
+        var validationResult = roiSet.Validate();
+        if (validationResult.IsFailure)
+        {
+            logger?.LogError("Invalid ROI set validation failed: {Error}", validationResult.Error);
+            return Result.Failure<Image<Rgba32>>($"Invalid ROI set: {validationResult.Error}");
+        }
+
+        logger?.LogDebug(
+            "ROI set validated successfully. Contains {RegionCount} region",
+            roiSet.AllRegions.Count()
+        );
+
+        // Clone the image to avoid modifying the original
+        logger?.LogDebug(
+            "Cloning source image with dimensions {Width}x{Height}",
+            sourceImage.Width,
+            sourceImage.Height
+        );
+        var annotatedImage = sourceImage.Clone(ctx =>
+        {
+            // Skip drawing if strokeWidth is 0
+            if (strokeWidth <= 0)
             {
-                logger?.LogError(
-                    "Invalid ROI set validation failed: {Error}",
-                    validationResult.Error
+                logger?.LogDebug(
+                    "Skipping ROI drawing - strokeWidth is {StrokeWidth}",
+                    strokeWidth
                 );
-                return Result.Failure<Image<Rgba32>>($"Invalid ROI set: {validationResult.Error}");
+                return;
             }
 
-            logger?.LogDebug(
-                "ROI set validated successfully. Contains {RegionCount} region",
-                roiSet.AllRegions.Count()
-            );
-
-            // Clone the image to avoid modifying the original
-            logger?.LogDebug(
-                "Cloning source image with dimensions {Width}x{Height}",
-                sourceImage.Width,
-                sourceImage.Height
-            );
-            var annotatedImage = sourceImage.Clone(ctx =>
+            // Draw the ROI Inner Region
+            foreach (var region in roiSet.AllRegions)
             {
-                // Skip drawing if strokeWidth is 0
-                if (strokeWidth <= 0)
+                var color = GetColorForPriority(region.Priority);
+                var bbox = region.BoundingBox;
+
+                logger?.LogDebug(
+                    "Drawing ROI {RegionName} with priority {Priority} at ({X},{Y}) size {Width}x{Height}",
+                    region.Name,
+                    region.Priority,
+                    bbox.X,
+                    bbox.Y,
+                    bbox.Width,
+                    bbox.Height
+                );
+
+                // Draw the bounding rectangle
+                var rectangle = new RectangleF(bbox.X, bbox.Y, bbox.Width, bbox.Height);
+                ctx.Draw(color, strokeWidth, rectangle);
+
+                // Draw priority label if requested
+                if (showLabels)
                 {
-                    logger?.LogDebug(
-                        "Skipping ROI drawing - strokeWidth is {StrokeWidth}",
-                        strokeWidth
-                    );
-                    return;
+                    logger?.LogDebug("Drawing priority label for region {RegionName}", region.Name);
+                    DrawPriorityLabel(ctx, region, color, logger);
                 }
+            }
+        });
 
-                // Draw the ROI Inner Region
-                foreach (var region in roiSet.AllRegions)
-                {
-                    var color = GetColorForPriority(region.Priority);
-                    var bbox = region.BoundingBox;
-
-                    logger?.LogDebug(
-                        "Drawing ROI {RegionName} with priority {Priority} at ({X},{Y}) size {Width}x{Height}",
-                        region.Name,
-                        region.Priority,
-                        bbox.X,
-                        bbox.Y,
-                        bbox.Width,
-                        bbox.Height
-                    );
-
-                    // Draw the bounding rectangle
-                    var rectangle = new RectangleF(bbox.X, bbox.Y, bbox.Width, bbox.Height);
-                    ctx.Draw(color, strokeWidth, rectangle);
-
-                    // Draw priority label if requested
-                    if (showLabels)
-                    {
-                        logger?.LogDebug(
-                            "Drawing priority label for region {RegionName}",
-                            region.Name
-                        );
-                        DrawPriorityLabel(ctx, region, color, logger);
-                    }
-                }
-            });
-
-            logger?.LogDebug("Successfully created annotated image with ROI Inner Region");
-            return Result.Success(annotatedImage);
+        logger?.LogDebug("Successfully created annotated image with ROI Inner Region");
+        return Result.Success(annotatedImage);
     }
 
     /// <summary>
@@ -181,53 +175,51 @@ public static class RoiVisualizationService
             pointColor.HasValue ? "specified" : "Blue"
         );
 
-            if (!landmarks.IsValid)
-            {
-                logger?.LogError(
-                    "Invalid landmarks - expected 68 points, got {Count}",
-                    landmarks.Points.Count
-                );
-                return Result.Failure<Image<Rgba32>>(
-                    "Invalid landmarks: must have exactly 68 points"
-                );
-            }
-
-            logger?.LogDebug(
-                "Landmarks validated successfully - {Count} points found",
+        if (!landmarks.IsValid)
+        {
+            logger?.LogError(
+                "Invalid landmarks - expected 68 points, got {Count}",
                 landmarks.Points.Count
             );
+            return Result.Failure<Image<Rgba32>>("Invalid landmarks: must have exactly 68 points");
+        }
 
-            var color = pointColor ?? Color.Blue;
-            logger?.LogDebug("Using specified color for landmark points");
+        logger?.LogDebug(
+            "Landmarks validated successfully - {Count} points found",
+            landmarks.Points.Count
+        );
 
-            var annotatedImage = sourceImage.Clone(ctx =>
+        var color = pointColor ?? Color.Blue;
+        logger?.LogDebug("Using specified color for landmark points");
+
+        var annotatedImage = sourceImage.Clone(ctx =>
+        {
+            var pointIndex = 0;
+            foreach (
+                var circle in landmarks.Points.Select(point => new EllipsePolygon(
+                    point.X,
+                    point.Y,
+                    pointSize
+                ))
+            )
             {
-                var pointIndex = 0;
-                foreach (
-                    var circle in landmarks.Points.Select(point => new EllipsePolygon(
-                        point.X,
-                        point.Y,
-                        pointSize
-                    ))
-                )
+                if (pointIndex % 10 == 0) // Log every 10th point to avoid spam
                 {
-                    if (pointIndex % 10 == 0) // Log every 10th point to avoid spam
-                    {
-                        logger?.LogDebug(
-                            "Drawing landmark point {Index} at ({X},{Y})",
-                            pointIndex,
-                            landmarks.Points[pointIndex].X,
-                            landmarks.Points[pointIndex].Y
-                        );
-                    }
-                    ctx.Fill(color, circle);
-                    pointIndex++;
+                    logger?.LogDebug(
+                        "Drawing landmark point {Index} at ({X},{Y})",
+                        pointIndex,
+                        landmarks.Points[pointIndex].X,
+                        landmarks.Points[pointIndex].Y
+                    );
                 }
-                logger?.LogDebug("Drew {Count} landmark points", pointIndex);
-            });
+                ctx.Fill(color, circle);
+                pointIndex++;
+            }
+            logger?.LogDebug("Drew {Count} landmark points", pointIndex);
+        });
 
-            logger?.LogDebug("Successfully created annotated image with landmark points");
-            return Result.Success(annotatedImage);
+        logger?.LogDebug("Successfully created annotated image with landmark points");
+        return Result.Success(annotatedImage);
     }
 
     /// <summary>
@@ -263,38 +255,38 @@ public static class RoiVisualizationService
         logger?.LogDebug(
             "Starting complete visualization with strokeWidth={StrokeWidth}, pointSize={PointSize}, showLabels={ShowLabels}",
             strokeWidth,
-                pointSize,
-                showLabels
-            );
+            pointSize,
+            showLabels
+        );
 
-            // First draw the ROI Inner Region
-            logger?.LogDebug("Drawing ROI Inner Region");
-            var roiResult = DrawRoiRegions(sourceImage, roiSet, strokeWidth, showLabels, logger);
-            if (roiResult.IsFailure)
-            {
-                logger?.LogError("Failed to draw ROI Inner Region: {Error}", roiResult.Error);
-                return roiResult;
-            }
+        // First draw the ROI Inner Region
+        logger?.LogDebug("Drawing ROI Inner Region");
+        var roiResult = DrawRoiRegions(sourceImage, roiSet, strokeWidth, showLabels, logger);
+        if (roiResult.IsFailure)
+        {
+            logger?.LogError("Failed to draw ROI Inner Region: {Error}", roiResult.Error);
+            return roiResult;
+        }
 
-            // Then overlay the landmark points
-            logger?.LogDebug("Overlaying landmark points");
-            var completeResult = DrawLandmarkPoints(
-                roiResult.Value,
-                landmarks,
-                pointSize,
-                Color.Blue,
-                logger
-            );
-            if (completeResult.IsFailure)
-            {
-                logger?.LogError("Failed to draw landmark points: {Error}", completeResult.Error);
-                return completeResult;
-            }
-
-            logger?.LogDebug(
-                "Successfully created complete visualization with ROI Inner Region and landmark points"
-            );
+        // Then overlay the landmark points
+        logger?.LogDebug("Overlaying landmark points");
+        var completeResult = DrawLandmarkPoints(
+            roiResult.Value,
+            landmarks,
+            pointSize,
+            Color.Blue,
+            logger
+        );
+        if (completeResult.IsFailure)
+        {
+            logger?.LogError("Failed to draw landmark points: {Error}", completeResult.Error);
             return completeResult;
+        }
+
+        logger?.LogDebug(
+            "Successfully created complete visualization with ROI Inner Region and landmark points"
+        );
+        return completeResult;
     }
 
     /// <summary>
@@ -394,119 +386,119 @@ public static class RoiVisualizationService
             strokeWidth
         );
 
-            // Clone the image to avoid modifying the original
-            var annotatedImage = sourceImage.Clone(ctx =>
+        // Clone the image to avoid modifying the original
+        var annotatedImage = sourceImage.Clone(ctx =>
+        {
+            // Line AA (Vertical Center Line) - Blue if aligned, Red if misaligned
+            var lineAaColor = complianceValidation.IsAAAligned ? Color.Blue : Color.Red;
+            var verticalLine = new PointF[]
             {
-                // Line AA (Vertical Center Line) - Blue if aligned, Red if misaligned
-                var lineAaColor = complianceValidation.IsAAAligned ? Color.Blue : Color.Red;
-                var verticalLine = new PointF[]
-                {
-                    new PointF(pivLines.LineAA_X, 0),
-                    new PointF(pivLines.LineAA_X, sourceImage.Height),
-                };
-                ctx.Draw(
-                    lineAaColor,
-                    strokeWidth,
-                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine))
-                );
-                logger?.LogDebug(
-                    "Drew Line AA (vertical center) at X={X} in {Color}",
-                    pivLines.LineAA_X,
-                    lineAaColor
-                );
+                new PointF(pivLines.LineAA_X, 0),
+                new PointF(pivLines.LineAA_X, sourceImage.Height),
+            };
+            ctx.Draw(
+                lineAaColor,
+                strokeWidth,
+                new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(verticalLine))
+            );
+            logger?.LogDebug(
+                "Drew Line AA (vertical center) at X={X} in {Color}",
+                pivLines.LineAA_X,
+                lineAaColor
+            );
 
-                // Line BB (Horizontal Eye Line) - Green if positioned correctly, Orange if incorrect
-                var lineBbColor = complianceValidation.IsBBPositioned ? Color.Green : Color.Orange;
-                var horizontalLine = new PointF[]
-                {
-                    new PointF(0, pivLines.LineBB_Y),
-                    new PointF(sourceImage.Width, pivLines.LineBB_Y),
-                };
-                ctx.Draw(
-                    lineBbColor,
-                    strokeWidth,
-                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine))
-                );
-                logger?.LogDebug(
-                    "Drew Line BB (horizontal eye line) at Y={Y} in {Color}",
-                    pivLines.LineBB_Y,
-                    lineBbColor
-                );
+            // Line BB (Horizontal Eye Line) - Green if positioned correctly, Orange if incorrect
+            var lineBbColor = complianceValidation.IsBBPositioned ? Color.Green : Color.Orange;
+            var horizontalLine = new PointF[]
+            {
+                new PointF(0, pivLines.LineBB_Y),
+                new PointF(sourceImage.Width, pivLines.LineBB_Y),
+            };
+            ctx.Draw(
+                lineBbColor,
+                strokeWidth,
+                new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(horizontalLine))
+            );
+            logger?.LogDebug(
+                "Drew Line BB (horizontal eye line) at Y={Y} in {Color}",
+                pivLines.LineBB_Y,
+                lineBbColor
+            );
 
-                // Line CC (Head Width Line) - Purple if valid ratio, Red if invalid
-                var lineCcColor = complianceValidation.IsCCRatioValid ? Color.Purple : Color.Red;
-                var headWidthLine = new PointF[]
-                {
-                    new PointF(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y),
-                    new PointF(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y),
-                };
-                ctx.Draw(
-                    lineCcColor,
-                    strokeWidth,
-                    new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine))
-                );
-                logger?.LogDebug(
-                    "Drew Line CC (head width) from ({X1},{Y1}) to ({X2},{Y2}) in {Color}",
-                    pivLines.LeftEarPoint.X,
-                    pivLines.LeftEarPoint.Y,
-                    pivLines.RightEarPoint.X,
-                    pivLines.RightEarPoint.Y,
-                    lineCcColor
-                );
+            // Line CC (Head Width Line) - Purple if valid ratio, Red if invalid
+            var lineCcColor = complianceValidation.IsCCRatioValid ? Color.Purple : Color.Red;
+            var headWidthLine = new PointF[]
+            {
+                new PointF(pivLines.LeftEarPoint.X, pivLines.LeftEarPoint.Y),
+                new PointF(pivLines.RightEarPoint.X, pivLines.RightEarPoint.Y),
+            };
+            ctx.Draw(
+                lineCcColor,
+                strokeWidth,
+                new SixLabors.ImageSharp.Drawing.Path(new LinearLineSegment(headWidthLine))
+            );
+            logger?.LogDebug(
+                "Drew Line CC (head width) from ({X1},{Y1}) to ({X2},{Y2}) in {Color}",
+                pivLines.LeftEarPoint.X,
+                pivLines.LeftEarPoint.Y,
+                pivLines.RightEarPoint.X,
+                pivLines.RightEarPoint.Y,
+                lineCcColor
+            );
 
-                // Draw key points as small circles
-                var pointRadius = strokeWidth + 1;
+            // Draw key points as small circles
+            var pointRadius = strokeWidth + 1;
 
-                // Nose center - Cyan
-                var noseCircle = new EllipsePolygon(
-                    pivLines.NoseCenter.X,
-                    pivLines.NoseCenter.Y,
-                    pointRadius
-                );
-                ctx.Fill(Color.Cyan, noseCircle);
+            // Nose center - Cyan
+            var noseCircle = new EllipsePolygon(
+                pivLines.NoseCenter.X,
+                pivLines.NoseCenter.Y,
+                pointRadius
+            );
+            ctx.Fill(Color.Cyan, noseCircle);
 
-                // Mouth center - Magenta
-                var mouthCircle = new EllipsePolygon(
-                    pivLines.MouthCenter.X,
-                    pivLines.MouthCenter.Y,
-                    pointRadius
-                );
-                ctx.Fill(Color.Magenta, mouthCircle);
+            // Mouth center - Magenta
+            var mouthCircle = new EllipsePolygon(
+                pivLines.MouthCenter.X,
+                pivLines.MouthCenter.Y,
+                pointRadius
+            );
+            ctx.Fill(Color.Magenta, mouthCircle);
 
-                // Eye centers - Yellow
-                var leftEyeCircle = new EllipsePolygon(
-                    pivLines.LeftEyeCenter.X,
-                    pivLines.LeftEyeCenter.Y,
-                    pointRadius
-                );
-                var rightEyeCircle = new EllipsePolygon(
-                    pivLines.RightEyeCenter.X,
-                    pivLines.RightEyeCenter.Y,
-                    pointRadius
-                );
-                ctx.Fill(Color.Yellow, leftEyeCircle);
-                ctx.Fill(Color.Yellow, rightEyeCircle);
+            // Eye centers - Yellow
+            var leftEyeCircle = new EllipsePolygon(
+                pivLines.LeftEyeCenter.X,
+                pivLines.LeftEyeCenter.Y,
+                pointRadius
+            );
+            var rightEyeCircle = new EllipsePolygon(
+                pivLines.RightEyeCenter.X,
+                pivLines.RightEyeCenter.Y,
+                pointRadius
+            );
+            ctx.Fill(Color.Yellow, leftEyeCircle);
+            ctx.Fill(Color.Yellow, rightEyeCircle);
 
-                // Ear points - White
-                var leftEarCircle = new EllipsePolygon(
-                    pivLines.LeftEarPoint.X,
-                    pivLines.LeftEarPoint.Y,
-                    pointRadius
-                );
-                var rightEarCircle = new EllipsePolygon(
-                    pivLines.RightEarPoint.X,
-                    pivLines.RightEarPoint.Y,
-                    pointRadius
-                );
-                ctx.Fill(Color.White, leftEarCircle);
-                ctx.Fill(Color.White, rightEarCircle);
+            // Ear points - White
+            var leftEarCircle = new EllipsePolygon(
+                pivLines.LeftEarPoint.X,
+                pivLines.LeftEarPoint.Y,
+                pointRadius
+            );
+            var rightEarCircle = new EllipsePolygon(
+                pivLines.RightEarPoint.X,
+                pivLines.RightEarPoint.Y,
+                pointRadius
+            );
+            ctx.Fill(Color.White, leftEarCircle);
+            ctx.Fill(Color.White, rightEarCircle);
 
-                logger?.LogDebug(
-                    "Drew key points: nose (cyan), mouth (magenta), eyes (yellow), ears (white)"
-                );
-            });
+            logger?.LogDebug(
+                "Drew key points: nose (cyan), mouth (magenta), eyes (yellow), ears (white)"
+            );
+        });
 
-            logger?.LogDebug("Successfully created PIV compliance lines visualization");
-            return Result.Success(annotatedImage);
+        logger?.LogDebug("Successfully created PIV compliance lines visualization");
+        return Result.Success(annotatedImage);
     }
 }

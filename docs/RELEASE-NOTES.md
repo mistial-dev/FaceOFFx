@@ -5,29 +5,39 @@
 ### Major Breaking Changes & Code Quality Improvements
 
 This major release improves code quality by adopting functional programming patterns
-throughout the codebase and corrects terminology to reflect PIV-compatible (not
-PIV-compliant) image processing.
+internally while providing a simplified public API. The release also corrects 
+terminology to reflect PIV-compatible (not PIV-compliant) image processing.
 
 ### Breaking Changes
 
-#### 1. Maybe<T> Pattern for Optional Values
-- `PivResult.Success()` method now accepts `Maybe<T>` parameters instead of nullable types
-- Calling code must use `Maybe<string>.From()` or `Maybe<T>.None` for optional parameters
+#### 1. New Simplified Public API
+
+- New `FacialImageEncoder` class provides standard .NET API without functional extensions
+- Methods now throw exceptions instead of returning Result<T>
+- Optional TryProcessAsync method available for non-throwing pattern
 - Example migration:
+
   ```csharp
-  // Old
-  var result = PivResult.Success(data, mime, dims, transform, face, summary: "text");
+  // Old (internal API)
+  var result = await FaceProcessor.ProcessAsync(imageData);
+  if (result.IsSuccess)
+  {
+      File.WriteAllBytes("output.jp2", result.Value.ImageData);
+  }
   
-  // New
-  var result = PivResult.Success(data, mime, dims, transform, face, Maybe<string>.From("text"));
+  // New (public API)
+  var result = await FacialImageEncoder.ProcessAsync(imageData);
+  File.WriteAllBytes("output.jp2", result.ImageData);
   ```
 
-#### 2. Removal of Try-Catch Error Handling
-- All try-catch blocks replaced with Result<T> pattern
-- Methods that could previously throw exceptions now return Result<T>
+#### 2. Internal Improvements
+
+- Internal code uses Maybe<T> pattern for optional values (not exposed publicly)
+- Internal methods use Result<T> for error handling (wrapped at public boundaries)
 - Improved error propagation and handling throughout the library
 
 #### 3. Terminology Correction: PIV-Compatible
+
 - All references to "PIV-compliant" changed to "PIV-compatible"
 - This accurately reflects that the library produces images compatible with PIV standards
 - No functional changes, documentation and naming only
@@ -35,6 +45,7 @@ PIV-compliant) image processing.
 ### New Features
 
 #### Command Line Enhancements
+
 - Added `--preset` parameter for predefined quality settings
 - Added `--target-size` parameter for specific file size targets
 - Presets include: piv-high (30KB), piv-balanced (20KB), twic-max (14KB), piv-min (12KB)

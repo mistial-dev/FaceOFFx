@@ -4,7 +4,6 @@ using FaceOFFx.Tests.Common;
 using NUnit.Framework;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace FaceOFFx.Cli.Tests.Commands;
 
@@ -156,7 +155,7 @@ public class ProcessCommandTests : IntegrationTestBase
             $"process \"{_testImagePath}\" --output \"{outputPath}\" --verbose"
         );
         exitCode.Should().Be(0);
-        output.Should().Contain("Processing with face processor");
+        output.Should().Contain("Processing with facial image encoder");
         // The output should contain success message since we're using a real face image
         output.Should().Contain("completed successfully");
     }

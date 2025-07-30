@@ -1,13 +1,9 @@
 using System.ComponentModel;
-using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
-using FaceOFFx.Core.Domain.Standards;
 using FaceOFFx.Core.Domain.Transformations;
 using FaceOFFx.Infrastructure.Services;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -57,8 +53,8 @@ public sealed class ProcessCommand(
         /// </summary>
         [CommandOption("--rate <RATE>")]
         [Description("JPEG 2000 base compression rate in bits per pixel")]
-        [DefaultValue("0.7")]
-        public string BaseRate { get; set; } = "0.7";
+        [DefaultValue(0.7f)]
+        public float BaseRate { get; set; } = 0.7f;
 
         /// <summary>
         /// ROI resolution level priority: 0=aggressive, 1=balanced, 2=conservative
@@ -67,8 +63,8 @@ public sealed class ProcessCommand(
         [Description(
             "ROI resolution level priority: 0=aggressive, 1=balanced, 2=conservative, 3=smoothest"
         )]
-        [DefaultValue("3")]
-        public string RoiStartLevel { get; set; } = "3";
+        [DefaultValue(3)]
+        public int RoiStartLevel { get; set; } = 3;
 
         /// <summary>
         /// If true, disable ROI encoding (enabled by default with level 3)
@@ -113,6 +109,22 @@ public sealed class ProcessCommand(
         [CommandOption("--target-size <SIZE>")]
         [Description("Target file size in bytes (overrides preset and rate)")]
         public int? TargetSize { get; set; }
+
+        /// <summary>
+        /// Minimum face detection confidence
+        /// </summary>
+        [CommandOption("--min-confidence <CONFIDENCE>")]
+        [Description("Minimum face detection confidence (0.0 to 1.0)")]
+        [DefaultValue(0.8f)]
+        public float MinConfidence { get; set; } = 0.8f;
+
+        /// <summary>
+        /// Maximum rotation angle for face alignment
+        /// </summary>
+        [CommandOption("--max-rotation <DEGREES>")]
+        [Description("Maximum rotation angle in degrees for face alignment")]
+        [DefaultValue(15.0f)]
+        public float MaxRotation { get; set; } = 15.0f;
     }
 
     private readonly IFaceDetector _faceDetector =
@@ -161,28 +173,28 @@ public sealed class ProcessCommand(
                     AnsiConsole.MarkupLine($"[blue]Source image: {imageData.Length} bytes[/]");
                 }
 
-                AnsiConsole.MarkupLine("[grey]Processing with face processor...[/]");
+                AnsiConsole.MarkupLine("[grey]Processing with facial image encoder...[/]");
                 _logger.LogDebug(
                     "Starting face processing with options: {Options}",
                     processingOptions
                 );
 
-                var result = await FaceProcessor.ProcessAsync(
-                    imageData,
-                    processingOptions,
-                    _logger
-                );
-
-                if (result.IsSuccess)
+                try
                 {
+                    var result = await FacialImageEncoder.ProcessAsync(
+                        imageData,
+                        processingOptions,
+                        _logger
+                    );
+
                     _logger.LogInformation("Face processing completed successfully");
-                    await HandleSuccess(result.Value, outputPath, settings, _logger);
+                    await HandleSuccess(result, outputPath, settings, _logger);
                     success = true;
                 }
-                else
+                catch (Exception ex)
                 {
-                    _logger.LogError("Face processing failed: {Error}", result.Error);
-                    HandleFailure(result.Error, _logger);
+                    _logger.LogError("Face processing failed: {Error}", ex.Message);
+                    HandleFailure(ex.Message, _logger);
                     success = false;
                 }
             }
@@ -205,28 +217,28 @@ public sealed class ProcessCommand(
                                 );
                             }
 
-                            ctx.Status("Processing with face processor...");
+                            ctx.Status("Processing with facial image encoder...");
                             _logger.LogDebug(
                                 "Starting face processing with options: {Options}",
                                 processingOptions
                             );
 
-                            var result = await FaceProcessor.ProcessAsync(
-                                imageData,
-                                processingOptions,
-                                _logger
-                            );
-
-                            if (result.IsSuccess)
+                            try
                             {
+                                var result = await FacialImageEncoder.ProcessAsync(
+                                    imageData,
+                                    processingOptions,
+                                    _logger
+                                );
+
                                 _logger.LogInformation("Face processing completed successfully");
-                                await HandleSuccess(result.Value, outputPath, settings, _logger);
+                                await HandleSuccess(result, outputPath, settings, _logger);
                                 success = true;
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                _logger.LogError("Face processing failed: {Error}", result.Error);
-                                HandleFailure(result.Error, _logger);
+                                _logger.LogError("Face processing failed: {Error}", ex.Message);
+                                HandleFailure(ex.Message, _logger);
                                 success = false;
                             }
                         }
@@ -251,7 +263,7 @@ public sealed class ProcessCommand(
     /// <param name="settings">Command settings</param>
     /// <param name="logger">Logger instance</param>
     private static async Task HandleSuccess(
-        ProcessingResult result,
+        ProcessingResultDto result,
         string outputPath,
         Settings settings,
         ILogger<ProcessCommand> logger
@@ -371,12 +383,12 @@ public sealed class ProcessCommand(
         }
 
         // Use custom rate if specified
-        if (float.TryParse(settings.BaseRate, out var rate) && rate > 0)
+        if (settings.BaseRate > 0)
         {
-            logger.LogDebug("Using custom rate: {Rate} bpp", rate);
+            logger.LogDebug("Using custom rate: {Rate} bpp", settings.BaseRate);
             var options = ProcessingOptions.PivBalanced with
             {
-                Strategy = EncodingStrategy.FixedRate(rate),
+                Strategy = EncodingStrategy.FixedRate(settings.BaseRate),
             };
             return ApplyOverrides(options, settings, logger);
         }
@@ -400,7 +412,9 @@ public sealed class ProcessCommand(
             "piv-min" => ProcessingOptions.PivMin,
             "piv-balanced" => ProcessingOptions.PivBalanced,
             "piv-high" => ProcessingOptions.PivHigh,
+            "piv-veryhigh" => ProcessingOptions.PivVeryHigh,
             "archival" => ProcessingOptions.Archival,
+            "minimal" => ProcessingOptions.Minimal,
             "fast" => ProcessingOptions.Fast,
             _ => null,
         };
@@ -418,20 +432,16 @@ public sealed class ProcessCommand(
         var options = baseOptions;
 
         // Apply ROI level override
-        if (
-            int.TryParse(settings.RoiStartLevel, out var roiLevel)
-            && roiLevel >= 0
-            && roiLevel <= 3
-        )
+        if (settings.RoiStartLevel >= 0 && settings.RoiStartLevel <= 3)
         {
-            if (roiLevel != baseOptions.RoiStartLevel)
+            if (settings.RoiStartLevel != baseOptions.RoiStartLevel)
             {
                 logger.LogDebug(
                     "Overriding ROI level: {OldLevel} → {NewLevel}",
                     baseOptions.RoiStartLevel,
-                    roiLevel
+                    settings.RoiStartLevel
                 );
-                options = options with { RoiStartLevel = roiLevel };
+                options = options with { RoiStartLevel = settings.RoiStartLevel };
             }
         }
 
@@ -447,6 +457,35 @@ public sealed class ProcessCommand(
         {
             logger.LogDebug("Enabling ROI alignment");
             options = options with { AlignRoi = true };
+        }
+
+        // Apply min confidence override
+        if (
+            settings.MinConfidence >= 0.0f
+            && settings.MinConfidence <= 1.0f
+            && Math.Abs(settings.MinConfidence - baseOptions.MinFaceConfidence) > 0.001f
+        )
+        {
+            logger.LogDebug(
+                "Overriding minimum face confidence: {OldConfidence} → {NewConfidence}",
+                baseOptions.MinFaceConfidence,
+                settings.MinConfidence
+            );
+            options = options with { MinFaceConfidence = settings.MinConfidence };
+        }
+
+        // Apply max rotation override
+        if (
+            settings.MaxRotation > 0.0f
+            && Math.Abs(settings.MaxRotation - baseOptions.MaxRotationDegrees) > 0.001f
+        )
+        {
+            logger.LogDebug(
+                "Overriding maximum rotation: {OldRotation}° → {NewRotation}°",
+                baseOptions.MaxRotationDegrees,
+                settings.MaxRotation
+            );
+            options = options with { MaxRotationDegrees = settings.MaxRotation };
         }
 
         return options;

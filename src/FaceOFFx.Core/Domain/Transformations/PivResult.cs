@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Domain.Detection;
 using JetBrains.Annotations;
 
@@ -340,6 +339,19 @@ public sealed record PivProcessingOptions
     /// processing fails if multiple faces are detected to prevent ambiguity.
     /// </remarks>
     public bool RequireSingleFace { get; init; } = true;
+
+    /// <summary>
+    /// Gets the maximum rotation angle allowed for face alignment.
+    /// </summary>
+    /// <value>
+    /// Maximum rotation in degrees. Default is 15.0 degrees (allows processing of moderately tilted input images).
+    /// </value>
+    /// <remarks>
+    /// PIV standards recommend limiting face rotation corrections to maintain
+    /// natural appearance. Larger values may result in more aggressive corrections
+    /// but could introduce artifacts or unnatural looking results.
+    /// </remarks>
+    public float MaxRotationDegrees { get; init; } = 15.0f;
 
     /// <summary>
     /// Gets the default PIV processing options with balanced settings.

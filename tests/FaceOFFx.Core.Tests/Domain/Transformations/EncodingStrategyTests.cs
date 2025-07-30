@@ -241,11 +241,14 @@ public class EncodingStrategyTests
     public void TargetSizeStrategy_Execute_UsesCorrectCompressionSteps()
     {
         var targetSize = 20000;
-        // Actual compression steps from the EncodingStrategy implementation
+        // For 20KB target with intelligent retry algorithm (MaxRetries=2, so 3 total tries):
+        // 1. Safety margin: 20,000 × 0.95 = 19,000 bytes
+        // 2. Expected rate: 0.55 bpp (produces ~17,700 bytes, fits under 19,000)
+        // 3. Distribution: Floor(3/2) = 1 upper try, Ceiling(3/2) = 2 lower tries
+        // 4. Sequence: 0.68 (upper), 0.55 (target), 0.46 (lower)
         var expectedRates = new[]
         {
-            0.35f, 0.36f, 0.46f, 0.55f, 0.68f, 0.75f, 0.85f
-            // It will start from 0.85f (index 6) and work backwards for a 20KB target
+            0.68f, 0.55f, 0.46f  // Intelligent retry sequence
         };
 
         // Mock encoder to always return too-large sizes so we test the steps
@@ -265,14 +268,11 @@ public class EncodingStrategyTests
 
         // Should fail since no rate produces small enough file
         result.IsFailure.Should().BeTrue();
-        
-        // Verify it tried the expected rates (starts from index 6 for 20KB target)
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.85f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.75f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.68f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.55f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.46f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.36f, 3, true, false);
-        _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.35f, 3, true, false);
+
+        // Verify it tried the expected rates in order
+        foreach (var rate in expectedRates)
+        {
+            _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, rate, 3, true, false);
+        }
     }
 }

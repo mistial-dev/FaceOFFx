@@ -1,6 +1,4 @@
-using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
-using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
 using JetBrains.Annotations;
 using SixLabors.ImageSharp;
@@ -136,107 +134,104 @@ public static class PivProcessor
         );
         if (pivLandmarkResult.IsFailure)
         {
-            logger?.LogWarning(
-                "PIV landmark processing failed: {Error}",
-                pivLandmarkResult.Error
-            );
+            logger?.LogWarning("PIV landmark processing failed: {Error}", pivLandmarkResult.Error);
             return Result.Failure<PivResult>(pivLandmarkResult.Error);
         }
 
-            var pivData = pivLandmarkResult.Value;
-            logger?.LogDebug(
-                "PIV landmark processing completed: rotation={Rotation:F2}°, crop=({X},{Y},{Width}x{Height}), landmarks={LandmarkCount}",
-                pivData.AppliedRotation,
-                pivData.FaceCrop.X,
-                pivData.FaceCrop.Y,
-                pivData.FaceCrop.Width,
-                pivData.FaceCrop.Height,
-                pivData.Landmarks.Points.Count
-            );
+        var pivData = pivLandmarkResult.Value;
+        logger?.LogDebug(
+            "PIV landmark processing completed: rotation={Rotation:F2}°, crop=({X},{Y},{Width}x{Height}), landmarks={LandmarkCount}",
+            pivData.AppliedRotation,
+            pivData.FaceCrop.X,
+            pivData.FaceCrop.Y,
+            pivData.FaceCrop.Width,
+            pivData.FaceCrop.Height,
+            pivData.Landmarks.Points.Count
+        );
 
-            // Step 3: Create metadata with all relevant information
-            logger?.LogDebug("Step 3: Creating metadata");
-            var metadata = new Dictionary<string, object>
-            {
-                ["SourceDimensions"] = sourceDimensions,
-                ["FaceConfidence"] = face.Confidence,
-                ["ProcessingOptions"] = options,
-                ["TransformedLandmarks"] = pivData.Landmarks,
-                ["RoiRegions"] = pivData.RoiSet,
-                ["AppliedRotation"] = pivData.AppliedRotation,
-                ["FaceCrop"] = pivData.FaceCrop,
-                ["PivImage"] = pivData.PivImage.Clone(), // Clone for visualization purposes to avoid disposal issues
-                ["PivLines"] = pivData.PivLines, // PIV compliance lines (AA, BB, CC)
-                ["ComplianceValidation"] = pivData.ComplianceValidation, // PIV compliance validation results
-            };
+        // Step 3: Create metadata with all relevant information
+        logger?.LogDebug("Step 3: Creating metadata");
+        var metadata = new Dictionary<string, object>
+        {
+            ["SourceDimensions"] = sourceDimensions,
+            ["FaceConfidence"] = face.Confidence,
+            ["ProcessingOptions"] = options,
+            ["TransformedLandmarks"] = pivData.Landmarks,
+            ["RoiRegions"] = pivData.RoiSet,
+            ["AppliedRotation"] = pivData.AppliedRotation,
+            ["FaceCrop"] = pivData.FaceCrop,
+            ["PivImage"] = pivData.PivImage.Clone(), // Clone for visualization purposes to avoid disposal issues
+            ["PivLines"] = pivData.PivLines, // PIV compliance lines (AA, BB, CC)
+            ["ComplianceValidation"] = pivData.ComplianceValidation, // PIV compliance validation results
+        };
 
-            // Step 4: Create PIV transform for compatibility (derived from unified processor results)
-            logger?.LogDebug("Step 4: Creating PIV transform");
-            var pivTransform = new PivTransform
+        // Step 4: Create PIV transform for compatibility (derived from unified processor results)
+        logger?.LogDebug("Step 4: Creating PIV transform");
+        var pivTransform = new PivTransform
+        {
+            RotationDegrees = pivData.AppliedRotation,
+            CropRegion = new CropRect
             {
-                RotationDegrees = pivData.AppliedRotation,
-                CropRegion = new CropRect
-                {
-                    Left = (float)pivData.FaceCrop.X / sourceDimensions.Width,
-                    Top = (float)pivData.FaceCrop.Y / sourceDimensions.Height,
-                    Width = (float)pivData.FaceCrop.Width / sourceDimensions.Width,
-                    Height = (float)pivData.FaceCrop.Height / sourceDimensions.Height,
-                },
-                ScaleFactor = 1.0f, // Unified processor handles scaling internally
-                TargetDimensions = pivData.Dimensions,
-                IsPivCompliant = true,
-            };
+                Left = (float)pivData.FaceCrop.X / sourceDimensions.Width,
+                Top = (float)pivData.FaceCrop.Y / sourceDimensions.Height,
+                Width = (float)pivData.FaceCrop.Width / sourceDimensions.Width,
+                Height = (float)pivData.FaceCrop.Height / sourceDimensions.Height,
+            },
+            ScaleFactor = 1.0f, // Unified processor handles scaling internally
+            TargetDimensions = pivData.Dimensions,
+            IsPivCompliant = true,
+        };
 
-            // Step 5: Encode the image to JPEG 2000
-            logger?.LogDebug(
-                "Step 5: Encoding to JPEG 2000 with ROI. BaseRate={BaseRate}, RoiStartLevel={RoiStartLevel}",
-                options.BaseRate,
-                options.RoiStartLevel
-            );
-            var encodingResult = jpeg2000Encoder.EncodeWithRoi(
-                pivData.PivImage,
-                pivData.RoiSet,
-                options.BaseRate,
-                options.RoiStartLevel,
-                enableRoi,
-                roiAlign
-            );
-            if (encodingResult.IsFailure)
-            {
-                logger?.LogError("JPEG 2000 encoding failed: {Error}", encodingResult.Error);
-                return Result.Failure<PivResult>(encodingResult.Error);
-            }
-            logger?.LogDebug(
-                "JPEG 2000 encoding successful, data size: {Size} bytes",
-                encodingResult.Value.Length
-            );
+        // Step 5: Encode the image to JPEG 2000
+        logger?.LogDebug(
+            "Step 5: Encoding to JPEG 2000 with ROI. BaseRate={BaseRate}, RoiStartLevel={RoiStartLevel}",
+            options.BaseRate,
+            options.RoiStartLevel
+        );
+        var encodingResult = jpeg2000Encoder.EncodeWithRoi(
+            pivData.PivImage,
+            pivData.RoiSet,
+            options.BaseRate,
+            options.RoiStartLevel,
+            enableRoi,
+            roiAlign
+        );
+        if (encodingResult.IsFailure)
+        {
+            logger?.LogError("JPEG 2000 encoding failed: {Error}", encodingResult.Error);
+            return Result.Failure<PivResult>(encodingResult.Error);
+        }
+        logger?.LogDebug(
+            "JPEG 2000 encoding successful, data size: {Size} bytes",
+            encodingResult.Value.Length
+        );
 
-            // Step 6: Create result with encoded data
-            logger?.LogDebug("Step 6: Creating final PIV result");
-            var result = PivResult.Success(
-                encodingResult.Value,
-                "image/jp2",
-                pivData.Dimensions,
-                pivTransform,
-                face,
-                Maybe<string>.From(pivData.ProcessingSummary),
-                Maybe<IReadOnlyList<string>>.None,
-                Maybe<IReadOnlyDictionary<string, object>>.From(metadata)
-            );
+        // Step 6: Create result with encoded data
+        logger?.LogDebug("Step 6: Creating final PIV result");
+        var result = PivResult.Success(
+            encodingResult.Value,
+            "image/jp2",
+            pivData.Dimensions,
+            pivTransform,
+            face,
+            Maybe<string>.From(pivData.ProcessingSummary),
+            Maybe<IReadOnlyList<string>>.None,
+            Maybe<IReadOnlyDictionary<string, object>>.From(metadata)
+        );
 
-            var validationResult = result.Validate().Map(() => result);
-            if (validationResult.IsSuccess)
-            {
-                logger?.LogInformation(
-                    "PIV processing completed successfully. Summary: {Summary}",
-                    pivData.ProcessingSummary
-                );
-            }
-            else
-            {
-                logger?.LogWarning("PIV result validation failed: {Error}", validationResult.Error);
-            }
-            return validationResult;
+        var validationResult = result.Validate().Map(() => result);
+        if (validationResult.IsSuccess)
+        {
+            logger?.LogInformation(
+                "PIV processing completed successfully. Summary: {Summary}",
+                pivData.ProcessingSummary
+            );
+        }
+        else
+        {
+            logger?.LogWarning("PIV result validation failed: {Error}", validationResult.Error);
+        }
+        return validationResult;
     }
 
     /// <summary>
@@ -423,78 +418,78 @@ public static class PivProcessor
         logger?.LogDebug("Applying PIV transformation to image");
         // Clone the image to avoid modifying the original
         var processedImage = sourceImage.Clone(ctx =>
+        {
+            // Apply transformations in sequence
+
+            // Step 1: Crop to center the face with proper aspect ratio
+            if (!IsCropFull(transform.CropRegion))
             {
-                // Apply transformations in sequence
+                logger?.LogDebug("Applying crop transformation");
+                var imageWidth = sourceImage.Width;
+                var imageHeight = sourceImage.Height;
 
-                // Step 1: Crop to center the face with proper aspect ratio
-                if (!IsCropFull(transform.CropRegion))
-                {
-                    logger?.LogDebug("Applying crop transformation");
-                    var imageWidth = sourceImage.Width;
-                    var imageHeight = sourceImage.Height;
+                // Calculate the crop rectangle based on the face position
+                var cropX = (int)(transform.CropRegion.Left * imageWidth);
+                var cropY = (int)(transform.CropRegion.Top * imageHeight);
+                var cropWidth = (int)(transform.CropRegion.Width * imageWidth);
+                var cropHeight = (int)(transform.CropRegion.Height * imageHeight);
 
-                    // Calculate the crop rectangle based on the face position
-                    var cropX = (int)(transform.CropRegion.Left * imageWidth);
-                    var cropY = (int)(transform.CropRegion.Top * imageHeight);
-                    var cropWidth = (int)(transform.CropRegion.Width * imageWidth);
-                    var cropHeight = (int)(transform.CropRegion.Height * imageHeight);
-
-                    // Ensure crop dimensions maintain PIV aspect ratio (3:4)
-                    var pivAspectRatio = 3.0f / 4.0f;
-                    var currentAspectRatio = (float)cropWidth / cropHeight;
-                    logger?.LogDebug(
-                        "Current crop aspect ratio: {Current}, target PIV ratio: {Target}",
-                        currentAspectRatio,
-                        pivAspectRatio
-                    );
-
-                    if (currentAspectRatio > pivAspectRatio)
-                    {
-                        // Too wide, reduce width and recenter horizontally
-                        var newCropWidth = (int)(cropHeight * pivAspectRatio);
-                        cropX = cropX + (cropWidth - newCropWidth) / 2; // Recenter
-                        cropWidth = newCropWidth;
-                    }
-                    else if (currentAspectRatio < pivAspectRatio)
-                    {
-                        // Too tall, reduce height and adjust vertical position
-                        var newCropHeight = (int)(cropWidth / pivAspectRatio);
-                        cropY = cropY + (cropHeight - newCropHeight) / 2; // Recenter
-                        cropHeight = newCropHeight;
-                    }
-
-                    // Ensure crop stays within bounds
-                    cropX = Math.Max(0, Math.Min(cropX, imageWidth - cropWidth));
-                    cropY = Math.Max(0, Math.Min(cropY, imageHeight - cropHeight));
-
-                    ctx.Crop(new Rectangle(cropX, cropY, cropWidth, cropHeight));
-                    logger?.LogDebug(
-                        "Applied crop: x={X}, y={Y}, width={Width}, height={Height}",
-                        cropX,
-                        cropY,
-                        cropWidth,
-                        cropHeight
-                    );
-                }
-
-                // Step 2: Rotate if needed (after cropping to minimize black border area)
-                if (Math.Abs(transform.RotationDegrees) > 0.1f)
-                {
-                    logger?.LogDebug("Applying rotation: {Degrees}°", transform.RotationDegrees);
-                    ctx.Rotate(transform.RotationDegrees);
-                }
-
-                // Step 3: Resize to final PIV dimensions (420x560)
+                // Ensure crop dimensions maintain PIV aspect ratio (3:4)
+                var pivAspectRatio = 3.0f / 4.0f;
+                var currentAspectRatio = (float)cropWidth / cropHeight;
                 logger?.LogDebug(
-                    "Resizing to PIV dimensions: {Width}x{Height}",
-                    transform.TargetDimensions.Width,
-                    transform.TargetDimensions.Height
+                    "Current crop aspect ratio: {Current}, target PIV ratio: {Target}",
+                    currentAspectRatio,
+                    pivAspectRatio
                 );
-                ctx.Resize(transform.TargetDimensions.Width, transform.TargetDimensions.Height);
-            });
 
-            logger?.LogDebug("PIV transformation applied successfully");
-            return Result.Success(processedImage);
+                if (currentAspectRatio > pivAspectRatio)
+                {
+                    // Too wide, reduce width and recenter horizontally
+                    var newCropWidth = (int)(cropHeight * pivAspectRatio);
+                    cropX = cropX + (cropWidth - newCropWidth) / 2; // Recenter
+                    cropWidth = newCropWidth;
+                }
+                else if (currentAspectRatio < pivAspectRatio)
+                {
+                    // Too tall, reduce height and adjust vertical position
+                    var newCropHeight = (int)(cropWidth / pivAspectRatio);
+                    cropY = cropY + (cropHeight - newCropHeight) / 2; // Recenter
+                    cropHeight = newCropHeight;
+                }
+
+                // Ensure crop stays within bounds
+                cropX = Math.Max(0, Math.Min(cropX, imageWidth - cropWidth));
+                cropY = Math.Max(0, Math.Min(cropY, imageHeight - cropHeight));
+
+                ctx.Crop(new Rectangle(cropX, cropY, cropWidth, cropHeight));
+                logger?.LogDebug(
+                    "Applied crop: x={X}, y={Y}, width={Width}, height={Height}",
+                    cropX,
+                    cropY,
+                    cropWidth,
+                    cropHeight
+                );
+            }
+
+            // Step 2: Rotate if needed (after cropping to minimize black border area)
+            if (Math.Abs(transform.RotationDegrees) > 0.1f)
+            {
+                logger?.LogDebug("Applying rotation: {Degrees}°", transform.RotationDegrees);
+                ctx.Rotate(transform.RotationDegrees);
+            }
+
+            // Step 3: Resize to final PIV dimensions (420x560)
+            logger?.LogDebug(
+                "Resizing to PIV dimensions: {Width}x{Height}",
+                transform.TargetDimensions.Width,
+                transform.TargetDimensions.Height
+            );
+            ctx.Resize(transform.TargetDimensions.Width, transform.TargetDimensions.Height);
+        });
+
+        logger?.LogDebug("PIV transformation applied successfully");
+        return Result.Success(processedImage);
     }
 
     /// <summary>
@@ -582,22 +577,22 @@ public static class PivProcessor
 
         // Process with default 20KB level 3 ROI settings (no alignment for smoothest transitions)
         var result = await ProcessAsync(
-                    sourceImage,
-                    faceDetector,
-                    landmarkExtractor,
-                    jpeg2000Encoder,
-                    PivProcessingOptions.Default,
-                    enableRoi: true, // ROI level 3 for smoothest quality transitions
-                    roiAlign: false
-                )
-                .ConfigureAwait(false); // No alignment for smoothest transitions
+                sourceImage,
+                faceDetector,
+                landmarkExtractor,
+                jpeg2000Encoder,
+                PivProcessingOptions.Default,
+                enableRoi: true, // ROI level 3 for smoothest quality transitions
+                roiAlign: false
+            )
+            .ConfigureAwait(false); // No alignment for smoothest transitions
 
-            if (result.IsSuccess)
-            {
-                // Save the encoded JPEG 2000 data to file
-                await File.WriteAllBytesAsync(outputJp2Path, result.Value.ImageData);
-            }
+        if (result.IsSuccess)
+        {
+            // Save the encoded JPEG 2000 data to file
+            await File.WriteAllBytesAsync(outputJp2Path, result.Value.ImageData);
+        }
 
-            return result;
+        return result;
     }
 }

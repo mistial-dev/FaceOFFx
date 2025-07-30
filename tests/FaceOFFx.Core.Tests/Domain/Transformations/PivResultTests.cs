@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using CSharpFunctionalExtensions;
-using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Detection;
 using FaceOFFx.Core.Domain.Transformations;
 using NUnit.Framework;

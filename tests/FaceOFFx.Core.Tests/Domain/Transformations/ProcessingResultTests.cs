@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using CSharpFunctionalExtensions;
-using FaceOFFx.Core.Domain.Common;
 using FaceOFFx.Core.Domain.Transformations;
 using NUnit.Framework;
 
@@ -226,11 +225,11 @@ public class ProcessingResultTests
 
         // Same values should be structurally equal
         metadata1.Should().BeEquivalentTo(metadata2);
-        
+
         // For true equality, we need to use the same collection instances
         var sharedWarnings = Array.Empty<string>();
         var sharedAdditionalData = new Dictionary<string, object>();
-        
+
         var metadata1a = new ProcessingMetadata(
             new ImageDimensions(420, 560),
             2.5f,
@@ -258,7 +257,7 @@ public class ProcessingResultTests
             Warnings = sharedWarnings,
             AdditionalData = sharedAdditionalData
         };
-        
+
         // With same collection instances, they should be equal
         metadata1a.Should().Be(metadata2a);
         metadata1a.GetHashCode().Should().Be(metadata2a.GetHashCode());

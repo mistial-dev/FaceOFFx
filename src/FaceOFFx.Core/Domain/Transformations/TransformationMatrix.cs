@@ -1,5 +1,4 @@
 using System.Numerics;
-using CSharpFunctionalExtensions;
 
 namespace FaceOFFx.Core.Domain.Transformations;
 

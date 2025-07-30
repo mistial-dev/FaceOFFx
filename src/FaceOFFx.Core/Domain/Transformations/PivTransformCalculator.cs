@@ -14,15 +14,16 @@ public static class PivTransformCalculator
     /// </summary>
     /// <param name="leftEye">Position of the left eye center.</param>
     /// <param name="rightEye">Position of the right eye center.</param>
+    /// <param name="maxRotationDegrees">Maximum allowed rotation in degrees. Default is 5.0 for PIV compliance.</param>
     /// <returns>
-    /// Rotation angle in degrees, limited to ±5 degrees for PIV compliance.
+    /// Rotation angle in degrees, limited to the specified maximum.
     /// Positive values indicate counter-clockwise rotation.
     /// </returns>
     /// <remarks>
     /// The calculation uses arctangent to determine the angle between the eyes,
-    /// then applies PIV compliance limits of ±5 degrees maximum rotation.
+    /// then applies the specified rotation limit.
     /// </remarks>
-    public static float CalculateRotationFromEyes(Point2D leftEye, Point2D rightEye)
+    public static float CalculateRotationFromEyes(Point2D leftEye, Point2D rightEye, float maxRotationDegrees = 5.0f)
     {
         var deltaY = rightEye.Y - leftEye.Y;
         var deltaX = rightEye.X - leftEye.X;
@@ -30,8 +31,8 @@ public static class PivTransformCalculator
         // Negative rotation to level the eyes (if right eye is higher, rotate clockwise)
         var rotationDegrees = -(float)(Math.Atan2(deltaY, deltaX) * 180 / Math.PI);
 
-        // Limit rotation to ±5 degrees for PIV compliance
-        return Math.Max(-5f, Math.Min(5f, rotationDegrees));
+        // Limit rotation to configured maximum
+        return Math.Max(-maxRotationDegrees, Math.Min(maxRotationDegrees, rotationDegrees));
     }
 
     /// <summary>

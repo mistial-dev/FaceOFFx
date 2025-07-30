@@ -61,6 +61,12 @@ public sealed record ProcessingOptions
     public bool AlignRoi { get; init; } = false;
 
     /// <summary>
+    /// Gets the maximum rotation angle allowed for face alignment
+    /// </summary>
+    /// <value>Maximum rotation in degrees. Default is 15.0 degrees (allows processing of moderately tilted input images).</value>
+    public float MaxRotationDegrees { get; init; } = 15.0f;
+
+    /// <summary>
     /// Gets the encoding strategy for JPEG 2000 compression
     /// </summary>
     /// <value>Strategy determining how the image is compressed. Default is 0.7 bpp fixed rate.</value>
@@ -74,7 +80,7 @@ public sealed record ProcessingOptions
     /// Targets 14KB maximum file size to fit within card storage constraints.
     /// </value>
     public static ProcessingOptions TwicMax =>
-        new() { Strategy = EncodingStrategy.TargetSize(14000), RoiStartLevel = 2 };
+        new() { Strategy = EncodingStrategy.TargetSize(14000), RoiStartLevel = 3 };
 
     /// <summary>
     /// PIV minimum: 12KB target for cards with minimum available space
@@ -85,7 +91,7 @@ public sealed record ProcessingOptions
     /// the minimum required space allocation for facial image storage.
     /// </value>
     public static ProcessingOptions PivMin =>
-        new() { Strategy = EncodingStrategy.TargetSize(12000), RoiStartLevel = 1 };
+        new() { Strategy = EncodingStrategy.TargetSize(12000), RoiStartLevel = 3 };
 
     /// <summary>
     /// PIV balanced: 20KB target for optimal quality/size balance
@@ -109,6 +115,17 @@ public sealed record ProcessingOptions
         new() { Strategy = EncodingStrategy.TargetSize(30000), RoiStartLevel = 3 };
 
     /// <summary>
+    /// PIV very high quality: 50KB target for premium quality
+    /// </summary>
+    /// <value>
+    /// Very high quality processing options targeting 50KB file size.
+    /// Provides excellent facial detail preservation while maintaining reasonable file sizes.
+    /// Suitable for applications requiring superior image quality without archival requirements.
+    /// </value>
+    public static ProcessingOptions PivVeryHigh =>
+        new() { Strategy = EncodingStrategy.TargetSize(50000), RoiStartLevel = 3 };
+
+    /// <summary>
     /// Archival: 4.0 bpp fixed rate for long-term storage
     /// </summary>
     /// <value>
@@ -125,19 +142,31 @@ public sealed record ProcessingOptions
         };
 
     /// <summary>
-    /// Fast processing: 0.5 bpp fixed rate for quick processing
+    /// Minimal file size: 0.5 bpp fixed rate for smallest storage footprint
     /// </summary>
     /// <value>
-    /// Fast processing options optimized for speed over quality.
-    /// Uses aggressive compression and minimal retries for rapid processing.
+    /// Minimal file size preset with aggressive compression (0.5 bpp).
+    /// Produces files around 15KB with reduced quality.
+    /// Suitable when storage space is the primary concern.
     /// </value>
-    public static ProcessingOptions Fast =>
+    public static ProcessingOptions Minimal =>
         new()
         {
             Strategy = EncodingStrategy.FixedRate(0.5f),
-            RoiStartLevel = 0,
-            MinFaceConfidence = 0.7f,
-            MaxRetries = 1,
-            ProcessingTimeout = TimeSpan.FromSeconds(10),
+            RoiStartLevel = 3,
         };
+
+    /// <summary>
+    /// Fast processing: Fail-fast behavior with minimal retries
+    /// </summary>
+    /// <value>
+    /// Fast processing preset with reduced retries and shorter timeout.
+    /// Same quality as default settings but fails quickly on errors.
+    /// Suitable for high-throughput batch processing where speed matters more than success rate.
+    /// </value>
+    public static ProcessingOptions Fast => PivBalanced with
+    {
+        MaxRetries = 1,
+        ProcessingTimeout = TimeSpan.FromSeconds(10),
+    };
 }

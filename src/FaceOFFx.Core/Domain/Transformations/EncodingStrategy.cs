@@ -1,8 +1,6 @@
-using CSharpFunctionalExtensions;
 using FaceOFFx.Core.Abstractions;
 using FaceOFFx.Core.Domain.Detection;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -79,43 +77,44 @@ public sealed record FixedRateStrategy(float Rate) : EncodingStrategy
 }
 
 /// <summary>
-/// Target file size strategy with stepped compression rates
+/// Target file size strategy with intelligent retry-based rate selection
 /// </summary>
 /// <param name="TargetBytes">Target file size in bytes</param>
+/// <remarks>
+/// This strategy uses an intelligent calculated approach rather than looping through all rates:
+/// 
+/// **Algorithm:**
+/// 1. Add 5% safety margin to target size (e.g., 20,000 → 19,000 bytes)
+/// 2. Map the adjusted target to an expected compression rate using empirical data
+/// 3. Calculate retry distribution around the expected rate based on MaxRetries
+/// 4. Test rates strategically: higher rates (expected to fail) → target rate → lower rates
+/// 5. Return immediately on first success (since testing high-to-low, first success is optimal)
+/// 
+/// **Retry Distribution:**
+/// - MaxRetries = 0: Single attempt using calculated expected rate
+/// - MaxRetries > 0: Total tries = MaxRetries + 1
+///   - Upper tries = Floor(total tries / 2) (rates above target - expected to exceed target)
+///   - Lower tries = Ceiling(total tries / 2) (includes target rate and rates below - expected to succeed)
+/// 
+/// **Example: Target 20,000 bytes with MaxRetries = 4 (5 total tries):**
+/// - Safety margin: 20,000 × 0.95 = 19,000 bytes  
+/// - Expected rate: 0.55 bpp (quantization level 4 - fits 19,000 bytes)
+/// - Distribution: Floor(5/2) = 2 upper tries, Ceiling(5/2) = 3 lower tries
+/// - Test sequence (Price is Right method - closest without going over):
+///   1. 0.75 bpp (level 6) → ~23,570 bytes (upper try 2, exceeds 20,000 - continue)  
+///   2. 0.68 bpp (level 5) → ~20,650 bytes (upper try 1, exceeds 20,000 - continue)
+///   3. 0.55 bpp (level 4) → ~17,700 bytes (target rate, fits under 20,000 - SUCCESS, exit here)
+///   4. 0.46 bpp (level 3) → ~14,780 bytes (lower try 1, not tested - already found solution)
+///   5. 0.36 bpp (level 2) → ~11,830 bytes (lower try 2, not tested - already found solution)
+/// - Result: Use level 4 (0.55 bpp) producing ~17,700 bytes
+/// 
+/// This approach is much more efficient than testing all 19+ quantization levels.
+/// </remarks>
 [PublicAPI]
 public sealed record TargetSizeStrategy(int TargetBytes) : EncodingStrategy
 {
     /// <summary>
-    /// Compression rates optimized for 420x560 PIV images based on JPEG 2000 quantization steps
-    /// Based on empirical testing with CoreJ2K encoder discrete quantization levels
-    /// Each rate represents the lowest value that achieves the target quantization level
-    /// File sizes are approximate and may vary slightly between images
-    /// </summary>
-    private static readonly float[] CompressionSteps = new[]
-    {
-        0.35f,  // ~8,860 bytes - quantization level 1 (minimum quality)
-        0.36f,  // ~11,830 bytes - quantization level 2 (good for PIV minimum 12KB target)
-        0.46f,  // ~14,780 bytes - quantization level 3 (exceeds TWIC 14KB limit) 
-        0.55f,  // ~17,700 bytes - quantization level 4 (intermediate)
-        0.68f,  // ~20,650 bytes - quantization level 5 (good for PIV balanced 20KB target)
-        0.75f,  // ~23,570 bytes - quantization level 6 (intermediate)
-        0.85f,  // ~26,440 bytes - quantization level 7 (intermediate)
-        0.96f,  // ~29,440 bytes - quantization level 8 (good for PIV high 30KB target)
-        1.10f,  // ~32,370 bytes - quantization level 9
-        1.20f,  // ~35,360 bytes - quantization level 10
-        1.30f,  // ~38,300 bytes - quantization level 11
-        1.40f,  // ~41,110 bytes - quantization level 12
-        1.50f,  // ~44,000 bytes - quantization level 13
-        1.60f,  // ~46,950 bytes - quantization level 14
-        1.70f,  // ~50,060 bytes - quantization level 15
-        1.80f,  // ~52,970 bytes - quantization level 16
-        1.90f,  // ~55,930 bytes - quantization level 17
-        2.00f,  // ~58,850 bytes - quantization level 18
-        2.50f,  // ~73,060 bytes - quantization level 19 (maximum tested)
-    };
-
-    /// <summary>
-    /// Execute target size encoding using stepped compression rates
+    /// Execute target size encoding using intelligent rate selection
     /// </summary>
     public override Result<EncodingResult> Execute(
         Image<Rgba32> image,
@@ -126,109 +125,135 @@ public sealed record TargetSizeStrategy(int TargetBytes) : EncodingStrategy
     )
     {
         logger ??= NullLogger.Instance;
-        var bestResult = Maybe<(byte[] Data, float Rate)>.None;
-        var bestSize = 0; // Start with 0 to find the largest size that fits
+        
+        // Step 1: Calculate target with 5% margin for safety
+        var targetWithMargin = (int)(TargetBytes * 0.95f);
+        logger.LogDebug(
+            "TargetSizeStrategy: Original target={TargetBytes} bytes, with 5% margin={TargetWithMargin} bytes", 
+            TargetBytes, targetWithMargin
+        );
 
-        // Calculate estimated starting rate based on target size
-        var estimatedIndex = EstimateStartingRateIndex(TargetBytes);
+        // Step 2: Find the expected rate for the target with margin
+        var expectedRate = CompressionMapping.GetRateForTargetSize(targetWithMargin);
+        var expectedIndex = CompressionMapping.GetIndexForRate(expectedRate);
         
-        // Start two steps above the estimated rate and work backwards
-        var startingIndex = Math.Min(estimatedIndex + 2, CompressionSteps.Length - 1);
+        logger.LogDebug(
+            "Expected rate for target: {ExpectedRate} bpp (index {ExpectedIndex})", 
+            expectedRate, expectedIndex
+        );
+
+        // Step 3: Calculate retry distribution
+        var totalTries = options.MaxRetries + 1; // Add 1 for the base attempt
         
-        logger.LogDebug("TargetSizeStrategy: Target={TargetBytes} bytes", TargetBytes);
-        logger.LogDebug("Estimated rate index: {EstimatedIndex} (rate={EstimatedRate})", estimatedIndex, CompressionSteps[estimatedIndex]);
-        logger.LogDebug("Starting index: {StartingIndex} (rate={StartingRate})", startingIndex, CompressionSteps[startingIndex]);
-        logger.LogDebug("Will test rates backwards from index {StartingIndex} to 0", startingIndex);
-        
-        // Work backwards from starting index to ensure we start over target
-        for (var i = startingIndex; i >= 0; i--)
+        if (totalTries == 1)
         {
-            var rate = CompressionSteps[i];
-            logger.LogDebug("Trying rate {Rate} (index {Index})...", rate, i);
+            // Single try - use expected rate (calculated with 5% margin) directly
+            logger.LogDebug("Single try mode - using expected rate {ExpectedRate} (calculated for {TargetWithMargin} bytes)", expectedRate, targetWithMargin);
+            return TryEncodeAndReturn(expectedRate, image, roiSet, encoder, options, logger);
+        }
+
+        // Multiple tries - distribute around expected rate
+        var upperTries = (int)Math.Floor(totalTries / 2.0); // Floor for upper tries (above target, expected to exceed)
+        var lowerTries = (int)Math.Ceiling(totalTries / 2.0); // Ceiling for lower tries (includes target, expected to succeed)
+        
+        logger.LogDebug(
+            "Retry distribution: {TotalTries} total tries = {UpperTries} upper + {LowerTries} lower (includes target)",
+            totalTries, upperTries, lowerTries
+        );
+
+        // Step 4: Calculate rate indices to test
+        var ratesToTest = new List<(int Index, float Rate, string Purpose)>();
+        var allRates = CompressionMapping.GetAllRates();
+
+        // Add upper tries (higher rates, expected to exceed target)
+        for (var i = 1; i <= upperTries; i++)
+        {
+            var upperIndex = Math.Min(expectedIndex + i, allRates.Length - 1);
+            if (upperIndex < allRates.Length)
+            {
+                ratesToTest.Add((upperIndex, allRates[upperIndex], $"Upper try {i} (expected to exceed)"));
+            }
+        }
+
+        // Add lower tries (at and below target rate, expected to succeed)
+        for (var i = 0; i < lowerTries; i++)
+        {
+            var lowerIndex = Math.Max(expectedIndex - i, 0);
+            if (lowerIndex >= 0)
+            {
+                var purpose = i == 0 ? "Target rate (expected to succeed)" : $"Lower try {i} (expected to succeed)";
+                ratesToTest.Add((lowerIndex, allRates[lowerIndex], purpose));
+            }
+        }
+
+        // Step 5: Test rates in order and stop at first success
+        // Since we test from high to low rates, the first rate that fits is the best rate
+        foreach (var (index, rate, purpose) in ratesToTest)
+        {
+            logger.LogDebug("Testing {Purpose}: rate {Rate} bpp (index {Index})", purpose, rate, index);
             
             var result = TryEncodeAtRate(rate, image, roiSet, encoder, options, logger);
-            
             if (result.HasValue)
             {
                 var (encodedData, size) = result.Value;
                 logger.LogDebug("Rate {Rate} produced {Size} bytes", rate, size);
-                
-                // If we hit target closely (within 5%), use this rate immediately
-                if (size <= TargetBytes && size > TargetBytes * 0.95)
-                {
-                    logger.LogDebug("Rate {Rate} is close enough to target ({Size} bytes), using immediately", rate, size);
-                    return Result.Success(new EncodingResult(encodedData, rate, TargetBytes));
-                }
 
-                // Track best result that fits within target
-                if (size <= TargetBytes && (bestResult.HasNoValue || size > bestSize))
+                if (size <= TargetBytes)
                 {
-                    logger.LogDebug("Rate {Rate} fits under target, updating best result (was {OldSize}, now {NewSize})", rate, bestSize, size);
-                    bestResult = (encodedData, rate);
-                    bestSize = size;
-                }
-                else if (size <= TargetBytes)
-                {
-                    logger.LogDebug("Rate {Rate} fits under target but not better than current best ({BestSize})", rate, bestSize);
+                    // Found a rate that fits - this is our result since we test high to low
+                    logger.LogInformation(
+                        "TargetSizeStrategy succeeded: {Size} bytes using {Rate} bpp (target was {TargetBytes})",
+                        size, rate, TargetBytes
+                    );
+                    return Result.Success(new EncodingResult(encodedData, rate, TargetBytes));
                 }
                 else
                 {
-                    logger.LogDebug("Rate {Rate} is over target ({Size} > {TargetBytes})", rate, size, TargetBytes);
+                    logger.LogDebug(
+                        "Rate {Rate} exceeds target ({Size} > {TargetBytes}) - continuing to next rate",
+                        rate, size, TargetBytes
+                    );
                 }
             }
             else
             {
-                logger.LogDebug("Rate {Rate} encoding failed", rate);
+                logger.LogWarning("Rate {Rate} encoding failed unexpectedly", rate);
             }
         }
-        
-        logger.LogDebug("Finished trying all rates. Best result: {BestResult}", bestResult.HasValue ? $"{bestSize} bytes" : "NONE");
 
-        return bestResult.HasValue
-            ? Result.Success(
-                new EncodingResult(bestResult.Value.Data, bestResult.Value.Rate, TargetBytes)
-            )
-            : Result.Failure<EncodingResult>(
-                $"Cannot compress image to {TargetBytes} bytes. Try a larger target size."
-            );
+        // Step 6: If we reach here, no rate worked
+        logger.LogError(
+            "TargetSizeStrategy failed: No rate produced a file size ≤ {TargetBytes} bytes", 
+            TargetBytes
+        );
+        return Result.Failure<EncodingResult>(
+            $"Cannot compress image to {TargetBytes} bytes. Try a larger target size or reduce image complexity."
+        );
     }
 
     /// <summary>
-    /// Estimates the starting compression rate index based on target file size
+    /// Helper method for single-try encoding
     /// </summary>
-    /// <param name="targetBytes">Target file size in bytes</param>
-    /// <returns>Index in CompressionSteps array to start testing from</returns>
-    private static int EstimateStartingRateIndex(int targetBytes)
+    private static Result<EncodingResult> TryEncodeAndReturn(
+        float rate,
+        Image<Rgba32> image,
+        FacialRoiSet roiSet,
+        IJpeg2000Encoder encoder,
+        ProcessingOptions options,
+        ILogger logger)
     {
-        // Direct mapping for all target sizes based on verified data
-        var estimatedRate = targetBytes switch
+        var result = TryEncodeAtRate(rate, image, roiSet, encoder, options, logger);
+        if (result.HasValue)
         {
-            <= 9000 => 0.35f,   // ~8,850 bytes -> 0.35 bpp
-            <= 12000 => 0.40f,  // ~11,825 bytes -> 0.40 bpp (PIV min)
-            <= 15000 => 0.46f,  // ~14,775 bytes -> 0.46 bpp (TWIC max)
-            <= 18000 => 0.55f,  // ~17,700 bytes -> 0.55 bpp
-            <= 21000 => 0.70f,  // ~20,635 bytes -> 0.70 bpp (PIV balanced)
-            <= 24000 => 0.75f,  // ~23,570 bytes -> 0.75 bpp (extrapolated)
-            <= 27000 => 0.85f,  // ~26,445 bytes -> 0.85 bpp
-            <= 30000 => 1.00f,  // ~29,430 bytes -> 1.00 bpp (PIV high)
-            <= 45000 => 1.50f,  // Larger files
-            <= 60000 => 2.00f,
-            <= 90000 => 3.00f,
-            <= 120000 => 4.00f,
-            <= 150000 => 5.00f,
-            _ => 6.00f           // Very large files
-        };
-
-        // Find the closest rate in our steps array
-        for (var i = 0; i < CompressionSteps.Length; i++)
-        {
-            if (CompressionSteps[i] >= estimatedRate)
-                return i;
+            var (data, size) = result.Value;
+            logger.LogInformation("Single-try encoding succeeded: {Size} bytes using {Rate} bpp", size, rate);
+            return Result.Success(new EncodingResult(data, rate, Maybe<int>.None));
         }
 
-        // Default to highest rate if target is very large
-        return CompressionSteps.Length - 1;
+        logger.LogError("Single-try encoding failed at rate {Rate} bpp", rate);
+        return Result.Failure<EncodingResult>($"Encoding failed at rate {rate} bpp");
     }
+
 
     /// <summary>
     /// Attempts to encode at a specific compression rate
@@ -246,16 +271,17 @@ public sealed record TargetSizeStrategy(int TargetBytes) : EncodingStrategy
         FacialRoiSet roiSet,
         IJpeg2000Encoder encoder,
         ProcessingOptions options,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
     {
         logger ??= NullLogger.Instance;
         logger.LogDebug("TryEncodeAtRate: Calling encoder.EncodeWithRoi for rate {Rate}", rate);
-        
+
         // Clone the image before encoding to prevent disposal issues
         // The JPEG 2000 encoder may dispose the image after encoding
         using var imageClone = image.Clone();
         logger.LogDebug("TryEncodeAtRate: Created image clone for rate {Rate}", rate);
-        
+
         var result = encoder.EncodeWithRoi(
             imageClone,
             roiSet,
@@ -267,17 +293,25 @@ public sealed record TargetSizeStrategy(int TargetBytes) : EncodingStrategy
 
         if (result.IsFailure)
         {
-            logger.LogDebug("TryEncodeAtRate: Encoder returned failure for rate {Rate}: {Error}", rate, result.Error);
+            logger.LogDebug(
+                "TryEncodeAtRate: Encoder returned failure for rate {Rate}: {Error}",
+                rate,
+                result.Error
+            );
             return Maybe<(byte[], int)>.None;
         }
-        
+
         var encodedData = result.Value;
         if (encodedData == null)
         {
             logger.LogDebug("TryEncodeAtRate: Encoder returned null data for rate {Rate}", rate);
             return Maybe<(byte[], int)>.None;
         }
-        logger.LogDebug("TryEncodeAtRate: Success for rate {Rate}, data length: {Length}", rate, encodedData.Length);
+        logger.LogDebug(
+            "TryEncodeAtRate: Success for rate {Rate}, data length: {Length}",
+            rate,
+            encodedData.Length
+        );
         return Maybe<(byte[], int)>.From((encodedData, encodedData.Length));
     }
 }
