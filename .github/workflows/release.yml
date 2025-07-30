@@ -1,0 +1,54 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Pack all projects
+      run: |
+        dotnet pack src/FaceOFFx.Cli/FaceOFFx.Cli.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx.Core/FaceOFFx.Core.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx.Infrastructure/FaceOFFx.Infrastructure.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx.Application/FaceOFFx.Application.csproj --configuration Release --no-build --output ./artifacts
+        
+    - name: Generate SBOM
+      run: |
+        dotnet tool install --global Microsoft.Sbom.DotNetTool
+        sbom-tool generate -b ./artifacts -bc . -pn FaceOFFx -pv ${GITHUB_REF#refs/tags/v} -ps mistial-dev -nsb https://github.com/mistial-dev/FaceOFFx
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ./artifacts/*.nupkg
+          ./artifacts/_manifest/spdx_2.2/*.json
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

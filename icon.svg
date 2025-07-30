@@ -1,0 +1,20 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="256" height="256" fill="#1a1a2e"/>
+  
+  <!-- Face outline -->
+  <ellipse cx="128" cy="128" rx="80" ry="100" fill="none" stroke="#16a085" stroke-width="4"/>
+  
+  <!-- Eyes -->
+  <circle cx="100" cy="110" r="8" fill="#16a085"/>
+  <circle cx="156" cy="110" r="8" fill="#16a085"/>
+  
+  <!-- PIV frame corners -->
+  <path d="M 40 40 L 60 40 L 60 20 L 40 20 Z" fill="#e74c3c"/>
+  <path d="M 196 40 L 216 40 L 216 20 L 196 20 Z" fill="#e74c3c"/>
+  <path d="M 40 216 L 60 216 L 60 236 L 40 236 Z" fill="#e74c3c"/>
+  <path d="M 196 216 L 216 216 L 216 236 L 196 236 Z" fill="#e74c3c"/>
+  
+  <!-- FaceOFFx text -->
+  <text x="128" y="210" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#ecf0f1">FaceOFFx</text>
+</svg>

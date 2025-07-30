@@ -1,0 +1,57 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+      
+    - name: Pack CLI tool
+      run: dotnet pack src/FaceOFFx.Cli/FaceOFFx.Cli.csproj --configuration Release --no-build --output ./artifacts
+      
+    - name: Pack libraries
+      run: |
+        dotnet pack src/FaceOFFx.Core/FaceOFFx.Core.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx.Infrastructure/FaceOFFx.Infrastructure.csproj --configuration Release --no-build --output ./artifacts
+        dotnet pack src/FaceOFFx.Application/FaceOFFx.Application.csproj --configuration Release --no-build --output ./artifacts
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-packages
+        path: ./artifacts/*.nupkg
+        
+    - name: Publish to NuGet
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        dotnet nuget push ./artifacts/*.nupkg \
+          --source https://api.nuget.org/v3/index.json \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --skip-duplicate

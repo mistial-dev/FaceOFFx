@@ -1,0 +1,16 @@
+global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using CSharpFunctionalExtensions;
+global using FaceOFFx.Core.Abstractions;
+global using FaceOFFx.Core.Domain;
+global using FaceOFFx.Core.Domain.Analysis;
+global using FaceOFFx.Core.Domain.Common;
+global using FaceOFFx.Core.Domain.Detection;
+global using FaceOFFx.Core.Domain.Recognition;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using Microsoft.ML.OnnxRuntime;
+global using Microsoft.ML.OnnxRuntime.Tensors;

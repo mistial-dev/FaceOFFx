@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" Version="4.0.1" />
+    <PackageReference Include="NUnit.Console" Version="3.17.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Update="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Remove="FluentAssertions" />
+    <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FaceOFFx.Cli\FaceOFFx.Cli.csproj" />
+    <ProjectReference Include="..\..\src\FaceOFFx.Application\FaceOFFx.Application.csproj" />
+    <ProjectReference Include="..\..\src\FaceOFFx.Core\FaceOFFx.Core.csproj" />
+    <ProjectReference Include="..\FaceOFFx.Tests.Common\FaceOFFx.Tests.Common.csproj" />
+  </ItemGroup>
+
+</Project>

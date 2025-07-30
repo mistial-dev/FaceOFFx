@@ -1,0 +1,94 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Core", "src\FaceOFFx.Core\FaceOFFx.Core.csproj", "{A1234567-1234-1234-1234-123456789001}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Infrastructure", "src\FaceOFFx.Infrastructure\FaceOFFx.Infrastructure.csproj", "{A1234567-1234-1234-1234-123456789002}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Application", "src\FaceOFFx.Application\FaceOFFx.Application.csproj", "{A1234567-1234-1234-1234-123456789003}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Models", "src\FaceOFFx.Models\FaceOFFx.Models.csproj", "{A1234567-1234-1234-1234-123456789004}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Cli", "src\FaceOFFx.Cli\FaceOFFx.Cli.csproj", "{A1234567-1234-1234-1234-123456789005}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Core.Tests", "tests\FaceOFFx.Core.Tests\FaceOFFx.Core.Tests.csproj", "{A1234567-1234-1234-1234-123456789006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Cli.Tests", "tests\FaceOFFx.Cli.Tests\FaceOFFx.Cli.Tests.csproj", "{A1234567-1234-1234-1234-123456789008}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Tests.Common", "tests\FaceOFFx.Tests.Common\FaceOFFx.Tests.Common.csproj", "{A1234567-1234-1234-1234-123456789009}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceOFFx.Infrastructure.Tests", "tests\FaceOFFx.Infrastructure.Tests\FaceOFFx.Infrastructure.Tests.csproj", "{A1234567-1234-1234-1234-123456789010}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{39C7E7FA-BB16-472F-B2F6-5A991B3C7E1B}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		README.md = README.md
+		CLAUDE.md = CLAUDE.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A1234567-1234-1234-1234-123456789001} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}
+		{A1234567-1234-1234-1234-123456789002} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}
+		{A1234567-1234-1234-1234-123456789003} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}
+		{A1234567-1234-1234-1234-123456789004} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}
+		{A1234567-1234-1234-1234-123456789005} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6A}
+		{A1234567-1234-1234-1234-123456789006} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6C}
+		{A1234567-1234-1234-1234-123456789008} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6C}
+		{A1234567-1234-1234-1234-123456789009} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6C}
+		{A1234567-1234-1234-1234-123456789010} = {8B8D4D1A-FF14-4E66-B8F5-FB5CFE2BCC6C}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1234567-1234-1234-1234-123456789001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789003}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789003}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789003}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789004}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789004}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789004}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789004}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789005}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789008}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789008}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789008}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789009}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789009}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789009}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789009}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789010}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789010}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1234567-1234-1234-1234-123456789010}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1234567-1234-1234-1234-123456789010}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

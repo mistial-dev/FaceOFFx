@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <LoggerRunSettings>
+    <Loggers>
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>minimal</Verbosity>
+        </Configuration>
+      </Logger>
+      <Logger friendlyName="trx" enabled="True">
+        <Configuration>
+          <LogFileName>TestResults.trx</LogFileName>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+  
+  <RunConfiguration>
+    <!-- Parallel execution settings -->
+    <MaxCpuCount>0</MaxCpuCount>
+    <ResultsDirectory>./TestResults</ResultsDirectory>
+    
+    <!-- Test timeout in milliseconds -->
+    <TestSessionTimeout>600000</TestSessionTimeout>
+  </RunConfiguration>
+  
+  <NUnit>
+    <!-- NUnit-specific configuration -->
+    <NumberOfTestWorkers>auto</NumberOfTestWorkers>
+    <DefaultTimeout>30000</DefaultTimeout>
+    <StopOnError>false</StopOnError>
+    <WorkDirectory>.</WorkDirectory>
+    
+    <!-- Test Categories to run/exclude -->
+    <!-- <IncludeCategory>Unit</IncludeCategory> -->
+    <!-- <ExcludeCategory>Integration,Performance</ExcludeCategory> -->
+  </NUnit>
+  
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <!-- Code coverage data collector -->
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>json,cobertura,opencover</Format>
+          <Include>[FaceOFFx.*]*</Include>
+          <Exclude>[FaceOFFx.*.Tests]*,[*]*.Program</Exclude>
+          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
