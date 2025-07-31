@@ -12,7 +12,7 @@ namespace FaceOFFx.Infrastructure.Tests.Services;
 [TestFixture]
 public class FacialImageEncoderFormatTests : IntegrationTestBase
 {
-    private static readonly string TestImagesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "sample_images");
+    private static readonly string TestImagesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "tests", "sample_images");
 
     /// <summary>
     /// Tests that JPEG format is processed correctly

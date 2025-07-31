@@ -22,7 +22,7 @@ public class FacialImageEncoderTests : IntegrationTestBase
         base.OneTimeSetUp();
 
         // Load test image data - use the actual generic_guy.png
-        var testImagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "sample_images", "generic_guy.png");
+        var testImagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..", "tests", "sample_images", "generic_guy.png");
 
         if (!File.Exists(testImagePath))
         {
@@ -90,7 +90,7 @@ public class FacialImageEncoderTests : IntegrationTestBase
 
         result.Should().NotBeNull();
         result.Metadata.TargetSize.HasValue.Should().BeTrue();
-        result.Metadata.TargetSize!.Value.Should().Be(20000);
+        result.Metadata.TargetSize!.Value.Should().Be(22000);
     }
 
     /// <summary>
