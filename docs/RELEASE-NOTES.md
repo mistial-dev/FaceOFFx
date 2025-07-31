@@ -2,15 +2,23 @@
 
 ## 2.0.0 (2025-07-30)
 
-### Major Breaking Changes & Code Quality Improvements
+### Major Breaking Changes & Enhanced Target Size Control
 
 This major release improves code quality by adopting functional programming patterns
-internally while providing a simplified public API. The release also corrects
-terminology to reflect PIV-compatible (not PIV-compliant) image processing.
+internally while providing a simplified public API. The release also introduces
+precise target size control and corrects terminology to reflect PIV-compatible
+(not PIV-compliant) image processing.
 
 ### Breaking Changes
 
-#### 1. New Simplified Public API
+#### 1. Precise Target Size Control
+
+- **Target Size Strategy**: Changed from approximate file sizes to exact target size limits
+  - PIV Balanced preset increased from 20KB to 22KB target (produces ~20.6KB files)
+  - Minimal preset now uses TargetSize(10000) instead of FixedRate(0.5f) (produces ~8.8KB files)
+  - All TargetSize strategies now enforce hard limits, not approximations
+
+#### 2. New Simplified Public API
 
 - New `FacialImageEncoder` class provides standard .NET API without functional extensions
 - Methods now throw exceptions instead of returning Result<T>
@@ -30,13 +38,13 @@ terminology to reflect PIV-compatible (not PIV-compliant) image processing.
   File.WriteAllBytes("output.jp2", result.ImageData);
   ```
 
-#### 2. Internal Improvements
+#### 3. Internal Improvements
 
 - Internal code uses Maybe<T> pattern for optional values (not exposed publicly)
 - Internal methods use Result<T> for error handling (wrapped at public boundaries)
 - Improved error propagation and handling throughout the library
 
-#### 3. Terminology Correction: PIV-Compatible
+#### 4. Terminology Correction: PIV-Compatible
 
 - All references to "PIV-compliant" changed to "PIV-compatible"
 - This accurately reflects that the library produces images compatible with PIV standards
@@ -44,15 +52,30 @@ terminology to reflect PIV-compatible (not PIV-compliant) image processing.
 
 ### New Features
 
+#### Enhanced File Size Control
+
+- **Precise Target Size Control**: TargetSize encoding strategy now provides exact file size limits
+- **Improved CLI Versioning**: CLI tool now displays dynamic version from assembly properties
+- **Enhanced Documentation**: Updated all file size references to reflect actual output sizes
+
 #### Command Line Enhancements
 
 - Added `--preset` parameter for predefined quality settings
 - Added `--target-size` parameter for specific file size targets
-- Presets include: piv-high (30KB), piv-balanced (20KB), twic-max (14KB), piv-min (12KB)
+- Presets include: piv-high (30KB), piv-balanced (22KB), twic-max (14KB), piv-min (12KB)
+
+### File Size Updates
+
+| Preset        | Old Target | New Target | Actual Output |
+|--------------|------------|------------|---------------|
+| PIV Balanced | 20KB       | 22KB       | ~20.6KB       |
+| PIV Minimum  | 12KB       | 12KB       | ~11.8KB       |
+| Minimal      | ~14.7KB    | 10KB       | ~8.8KB        |
 
 ### Bug Fixes
 
 - Fixed misleading comment about transformation order (was "crop first, then rotate")
+- Fixed hardcoded version display in CLI tool
 - Improved error handling throughout the codebase
 - Better null safety with compile-time guarantees
 
@@ -71,6 +94,15 @@ To migrate from 1.0.x to 2.0.0:
 2. Handle Result<T> return values instead of try-catch blocks
 3. Update any references from "PIV-compliant" to "PIV-compatible" in your code
 4. Review ProcessCommand usage if using the CLI programmatically
+5. File sizes may differ slightly due to updated presets
+6. CLI tool now shows correct version (2.0.0) instead of hardcoded value
+
+### Technical Changes
+
+- Updated `ProcessingOptions.PivBalanced` from `TargetSize(20000)` to `TargetSize(22000)`
+- Updated `ProcessingOptions.Minimal` from `FixedRate(0.5f)` to `TargetSize(10000)`
+- Enhanced CLI version display using `Assembly.GetName().Version`
+- Regenerated all sample images with updated presets
 
 ### Dependencies
 

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Description>ONNX models for FaceOFFx facial recognition library</Description>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\*.onnx" />

@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Description>Infrastructure implementation for FaceOFFx facial recognition library</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\FaceOFFx.Core\FaceOFFx.Core.csproj" />

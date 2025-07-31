@@ -94,15 +94,15 @@ public sealed record ProcessingOptions
         new() { Strategy = EncodingStrategy.TargetSize(12000), RoiStartLevel = 3 };
 
     /// <summary>
-    /// PIV balanced: 20KB target for optimal quality/size balance
+    /// PIV balanced: 22KB target for optimal quality/size balance
     /// </summary>
     /// <value>
     /// Balanced processing options for Personal Identity Verification (PIV) cards.
-    /// Targets 20KB file size with optimal balance of quality and compression.
+    /// Targets 22KB file size with optimal balance of quality and compression.
     /// Recommended for most PIV applications.
     /// </value>
     public static ProcessingOptions PivBalanced =>
-        new() { Strategy = EncodingStrategy.TargetSize(20000), RoiStartLevel = 3 };
+        new() { Strategy = EncodingStrategy.TargetSize(22000), RoiStartLevel = 3 };
 
     /// <summary>
     /// PIV high quality: 30KB target for enhanced PIV compatibility

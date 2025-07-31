@@ -53,7 +53,7 @@ var app = new CommandApp(registrar);
 app.Configure(config =>
 {
     config.SetApplicationName("faceoffx");
-    config.SetApplicationVersion("1.0.0");
+    config.SetApplicationVersion(typeof(Program).Assembly.GetName().Version?.ToString() ?? "Unknown");
     config.ValidateExamples();
 
     // PIV Commands - single clean command
