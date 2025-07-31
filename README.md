@@ -1,6 +1,6 @@
 # FaceOFFx – PIV-Compatible Facial Processing for .NET
 
-![FaceOFFx ROI Visualization](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi.jpg)
+![FaceOFFx ROI Visualization](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi_300w.jpg)
 
 *"I want to take his face... off."*
 — Castor Troy, *Face/Off* (1997)

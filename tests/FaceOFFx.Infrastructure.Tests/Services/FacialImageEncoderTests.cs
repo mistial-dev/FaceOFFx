@@ -22,7 +22,7 @@ public class FacialImageEncoderTests : IntegrationTestBase
         base.OneTimeSetUp();
 
         // Load test image data - use the actual generic_guy.png
-        var testImagePath = "/Users/mistial/Projects/FaceONNX/tests/sample_images/generic_guy.png";
+        var testImagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "sample_images", "generic_guy.png");
 
         if (!File.Exists(testImagePath))
         {

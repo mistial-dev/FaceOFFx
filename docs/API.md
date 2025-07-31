@@ -27,7 +27,7 @@ byte[] imageData = await File.ReadAllBytesAsync("photo.jpg");
 
 try
 {
-    // Process to PIV-compatible JPEG 2000 format (20KB target)
+    // Process to PIV-compatible JPEG 2000 format (22KB target)
     var result = await FacialImageEncoder.ProcessAsync(imageData);
 
     Console.WriteLine($"Processing successful!");
@@ -90,7 +90,7 @@ The `FacialImageEncoder` is the primary public API that uses standard .NET conve
 using FaceOFFx.Infrastructure.Services;
 using FaceOFFx.Core.Domain.Transformations;
 
-// Process with default PIV settings (20KB target)
+// Process with default PIV settings (22KB target)
 var result = await FacialImageEncoder.ProcessAsync(imageData);
 ```
 
@@ -119,7 +119,7 @@ var result = await FacialImageEncoder.ProcessAsync(imageData, customOptions);
 // TWIC card processing (14KB maximum)
 var twicResult = await FacialImageEncoder.ProcessForTwicAsync(imageData);
 
-// Standard PIV processing (20KB target)  
+// Standard PIV processing (22KB target)  
 var pivResult = await FacialImageEncoder.ProcessForPivAsync(imageData);
 
 // Custom target size
@@ -267,7 +267,7 @@ Both APIs use the same `ProcessingOptions` record for configuration.
 // Government card presets
 ProcessingOptions.TwicMax       // 14KB - TWIC card maximum
 ProcessingOptions.PivMin        // 12KB - PIV minimum space  
-ProcessingOptions.PivBalanced   // 20KB - Standard PIV (recommended)
+ProcessingOptions.PivBalanced   // 22KB - Standard PIV (recommended)
 ProcessingOptions.PivHigh       // 30KB - Enhanced PIV quality
 ProcessingOptions.PivVeryHigh   // 50KB - Premium quality
 
@@ -283,12 +283,12 @@ ProcessingOptions.Fast          // Same as PivBalanced but fail-fast
 |-------------|-------------|-------------|------------------|-------------------------------|
 | TwicMax     | 14KB        | ~12KB       | Variable         | TWIC card compatibility       |
 | PivMin      | 12KB        | ~11.8KB     | 0.36 bpp         | PIV minimum space             |
-| PivBalanced | 20KB        | ~17.7KB     | 0.55 bpp         | **Default** - Optimal balance |
+| PivBalanced | 22KB        | ~20.6KB     | 0.68 bpp         | **Default** - Optimal balance |
 | PivHigh     | 30KB        | ~29.4KB     | 0.96 bpp         | Enhanced quality              |
 | PivVeryHigh | 50KB        | ~49.7KB     | 1.70 bpp         | Premium quality               |
 | Archival    | -           | ~82KB       | 4.00 bpp         | Long-term preservation        |
 | Minimal     | -           | ~14.7KB     | 0.48 bpp         | Smallest possible             |
-| Fast        | 20KB        | ~17.7KB     | 0.55 bpp         | Quick processing              |
+| Fast        | 22KB        | ~20.6KB     | 0.68 bpp         | Quick processing              |
 
 ### Custom Configuration
 

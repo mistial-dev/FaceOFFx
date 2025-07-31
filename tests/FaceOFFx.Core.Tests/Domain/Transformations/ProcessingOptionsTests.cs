@@ -71,7 +71,7 @@ public class ProcessingOptionsTests
         var options = ProcessingOptions.PivBalanced;
 
         options.Strategy.Should().BeOfType<TargetSizeStrategy>();
-        ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(20000);
+        ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(22000);
         options.RoiStartLevel.Should().Be(3); // Smoothest transitions
         options.MinFaceConfidence.Should().Be(0.8f);
         options.RequireSingleFace.Should().BeTrue();
@@ -121,7 +121,7 @@ public class ProcessingOptionsTests
         var options = ProcessingOptions.Fast;
 
         options.Strategy.Should().BeOfType<TargetSizeStrategy>();
-        ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(20000); // Fast uses PivBalanced base
+        ((TargetSizeStrategy)options.Strategy).TargetBytes.Should().Be(22000); // Fast uses PivBalanced base
         options.RoiStartLevel.Should().Be(3); // Uses PivBalanced ROI level
         options.MaxRetries.Should().Be(1); // Fewer retries for speed
         options.ProcessingTimeout.Should().Be(TimeSpan.FromSeconds(10)); // Shorter timeout
