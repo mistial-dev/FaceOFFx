@@ -204,7 +204,7 @@ public class ProcessingResultTests
             CompressionRate = 0.7f,
             TargetSize = Maybe<int>.None,
             Warnings = Array.Empty<string>(),
-            AdditionalData = new Dictionary<string, object>()
+            AdditionalData = new Dictionary<string, object>(),
         };
 
         var metadata2 = new ProcessingMetadata(
@@ -218,7 +218,7 @@ public class ProcessingResultTests
             CompressionRate = 0.7f,
             TargetSize = Maybe<int>.None,
             Warnings = Array.Empty<string>(),
-            AdditionalData = new Dictionary<string, object>()
+            AdditionalData = new Dictionary<string, object>(),
         };
 
         var metadata3 = metadata1 with { CompressionRate = 1.0f };
@@ -241,7 +241,7 @@ public class ProcessingResultTests
             CompressionRate = 0.7f,
             TargetSize = Maybe<int>.None,
             Warnings = sharedWarnings,
-            AdditionalData = sharedAdditionalData
+            AdditionalData = sharedAdditionalData,
         };
 
         var metadata2a = new ProcessingMetadata(
@@ -255,7 +255,7 @@ public class ProcessingResultTests
             CompressionRate = 0.7f,
             TargetSize = Maybe<int>.None,
             Warnings = sharedWarnings,
-            AdditionalData = sharedAdditionalData
+            AdditionalData = sharedAdditionalData,
         };
 
         // With same collection instances, they should be equal

@@ -51,7 +51,11 @@ public static class PivLandmarkProcessor
 
         // Step 2: Calculate rotation from landmarks
         logger?.LogDebug("Step 2: Calculating rotation from landmarks");
-        var rotationDegrees = CalculateRotationFromLandmarks(originalLandmarks, options.MaxRotationDegrees, logger);
+        var rotationDegrees = CalculateRotationFromLandmarks(
+            originalLandmarks,
+            options.MaxRotationDegrees,
+            logger
+        );
         logger?.LogDebug("Calculated rotation: {Rotation}°", rotationDegrees);
 
         // Step 3: Transform landmarks to account for rotation
@@ -90,9 +94,7 @@ public static class PivLandmarkProcessor
         {
             logger?.LogWarning("Face crop calculation failed: {Error}", error);
             rotatedImage.Dispose();
-            return Result.Failure<PivLandmarkResult>(
-                $"Face crop calculation failed: {error}"
-            );
+            return Result.Failure<PivLandmarkResult>($"Face crop calculation failed: {error}");
         }
 
         logger?.LogDebug(
@@ -217,7 +219,10 @@ public static class PivLandmarkProcessor
         logger?.LogDebug("Calculated raw rotation: {Rotation}°", rotationDegrees);
 
         // Limit rotation to configured maximum for PIV compliance
-        var limitedRotation = Math.Max(-maxRotationDegrees, Math.Min(maxRotationDegrees, rotationDegrees));
+        var limitedRotation = Math.Max(
+            -maxRotationDegrees,
+            Math.Min(maxRotationDegrees, rotationDegrees)
+        );
         if (Math.Abs(limitedRotation - rotationDegrees) > 0.01f)
         {
             logger?.LogDebug(
@@ -473,7 +478,14 @@ public static class PivLandmarkProcessor
         var offsetX = (pivWidth - scaledWidth) / 2f;
         var offsetY = (pivHeight - scaledHeight) / 2f;
 
-        var transformedPoints = (from point in rotatedLandmarks.Points let cropX = point.X - faceCrop.X let cropY = point.Y - faceCrop.Y let finalX = cropX * scale + offsetX let finalY = cropY * scale + offsetY select new Point2D(finalX, finalY)).ToList();
+        var transformedPoints = (
+            from point in rotatedLandmarks.Points
+            let cropX = point.X - faceCrop.X
+            let cropY = point.Y - faceCrop.Y
+            let finalX = cropX * scale + offsetX
+            let finalY = cropY * scale + offsetY
+            select new Point2D(finalX, finalY)
+        ).ToList();
 
         return new FaceLandmarks68(transformedPoints);
     }
@@ -481,8 +493,7 @@ public static class PivLandmarkProcessor
     /// <summary>
     /// Returns ROI Inner Region using ANSI INCITS 385-2004 B.4 approach.
     /// </summary>
-    private static Result<FacialRoiSet> StandardRoiIncits385(ILogger? logger = null
-    )
+    private static Result<FacialRoiSet> StandardRoiIncits385(ILogger? logger = null)
     {
         logger?.LogDebug("Calculating Appendix C.6 compliant ROI Inner Region");
 
@@ -523,10 +534,7 @@ public record PivLandmarkResult(
     /// </summary>
     public ImageDimensions Dimensions
     {
-        get
-        {
-            return new ImageDimensions(PivImage.Width, PivImage.Height);
-        }
+        get { return new ImageDimensions(PivImage.Width, PivImage.Height); }
     }
 
     /// <summary>
@@ -545,10 +553,7 @@ public record PivLandmarkResult(
     /// </summary>
     public bool IsCompliant
     {
-        get
-        {
-            return ComplianceValidation.IsFullyCompliant;
-        }
+        get { return ComplianceValidation.IsFullyCompliant; }
     }
 
     /// <summary>
@@ -556,9 +561,6 @@ public record PivLandmarkResult(
     /// </summary>
     public ComplianceSeverity ComplianceSeverity
     {
-        get
-        {
-            return ComplianceValidation.Severity;
-        }
+        get { return ComplianceValidation.Severity; }
     }
 }

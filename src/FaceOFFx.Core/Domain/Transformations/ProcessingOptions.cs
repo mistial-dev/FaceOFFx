@@ -150,11 +150,7 @@ public sealed record ProcessingOptions
     /// Suitable when storage space is the primary concern.
     /// </value>
     public static ProcessingOptions Minimal =>
-        new()
-        {
-            Strategy = EncodingStrategy.FixedRate(0.5f),
-            RoiStartLevel = 3,
-        };
+        new() { Strategy = EncodingStrategy.FixedRate(0.5f), RoiStartLevel = 3 };
 
     /// <summary>
     /// Fast processing: Fail-fast behavior with minimal retries
@@ -164,9 +160,10 @@ public sealed record ProcessingOptions
     /// Same quality as default settings but fails quickly on errors.
     /// Suitable for high-throughput batch processing where speed matters more than success rate.
     /// </value>
-    public static ProcessingOptions Fast => PivBalanced with
-    {
-        MaxRetries = 1,
-        ProcessingTimeout = TimeSpan.FromSeconds(10),
-    };
+    public static ProcessingOptions Fast =>
+        PivBalanced with
+        {
+            MaxRetries = 1,
+            ProcessingTimeout = TimeSpan.FromSeconds(10),
+        };
 }

@@ -65,6 +65,7 @@ The library requires .NET 8.0 or later and includes all necessary ONNX models vi
 FaceOFFx provides two distinct API levels designed for different user needs:
 
 ### 1. FacialImageEncoder (Public API - Recommended)
+
 - **Uses standard .NET exception handling** - no functional programming knowledge required
 - **Returns concrete results** - `ProcessingResultDto` with all metadata
 - **Automatic service management** - no manual disposal or setup needed  
@@ -72,6 +73,7 @@ FaceOFFx provides two distinct API levels designed for different user needs:
 - **Target audience**: Regular .NET developers, production applications
 
 ### 2. PivProcessor (Advanced API)
+
 - **Uses functional error handling** - requires CSharpFunctionalExtensions knowledge
 - **Returns `Result<T>` types** - functional programming patterns
 - **Manual service management** - you control service lifecycle
@@ -277,16 +279,16 @@ ProcessingOptions.Fast          // Same as PivBalanced but fail-fast
 
 #### Preset Comparison
 
-| Preset | Target Size | Actual Size | Compression Rate | Use Case |
-|--------|-------------|-------------|------------------|----------|
-| TwicMax | 14KB | ~12KB | Variable | TWIC card compatibility |
-| PivMin | 12KB | ~11.8KB | 0.36 bpp | PIV minimum space |
-| PivBalanced | 20KB | ~17.7KB | 0.55 bpp | **Default** - Optimal balance |
-| PivHigh | 30KB | ~29.4KB | 0.96 bpp | Enhanced quality |
-| PivVeryHigh | 50KB | ~49.7KB | 1.70 bpp | Premium quality |
-| Archival | - | ~82KB | 4.00 bpp | Long-term preservation |
-| Minimal | - | ~14.7KB | 0.48 bpp | Smallest possible |
-| Fast | 20KB | ~17.7KB | 0.55 bpp | Quick processing |
+| Preset      | Target Size | Actual Size | Compression Rate | Use Case                      |
+|-------------|-------------|-------------|------------------|-------------------------------|
+| TwicMax     | 14KB        | ~12KB       | Variable         | TWIC card compatibility       |
+| PivMin      | 12KB        | ~11.8KB     | 0.36 bpp         | PIV minimum space             |
+| PivBalanced | 20KB        | ~17.7KB     | 0.55 bpp         | **Default** - Optimal balance |
+| PivHigh     | 30KB        | ~29.4KB     | 0.96 bpp         | Enhanced quality              |
+| PivVeryHigh | 50KB        | ~49.7KB     | 1.70 bpp         | Premium quality               |
+| Archival    | -           | ~82KB       | 4.00 bpp         | Long-term preservation        |
+| Minimal     | -           | ~14.7KB     | 0.48 bpp         | Smallest possible             |
+| Fast        | 20KB        | ~17.7KB     | 0.55 bpp         | Quick processing              |
 
 ### Custom Configuration
 
@@ -562,6 +564,7 @@ var uniformOptions = ProcessingOptions.PivBalanced with
 ```
 
 **ROI Start Levels:**
+
 - **Level 0**: Aggressive ROI priority - maximum facial quality, sharp transitions
 - **Level 1**: Balanced quality distribution
 - **Level 2**: Conservative ROI priority

@@ -327,28 +327,30 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
                 if (decodedLandmarks != null)
                 {
                     // Convert landmark coordinates
-                    landmarks = Maybe<FaceLandmarks5>.From(new FaceLandmarks5(
-                        new Point2D(
-                            (decodedLandmarks[0] - padX) / scale,
-                            (decodedLandmarks[1] - padY) / scale
-                        ),
-                        new Point2D(
-                            (decodedLandmarks[2] - padX) / scale,
-                            (decodedLandmarks[3] - padY) / scale
-                        ),
-                        new Point2D(
-                            (decodedLandmarks[4] - padX) / scale,
-                            (decodedLandmarks[5] - padY) / scale
-                        ),
-                        new Point2D(
-                            (decodedLandmarks[6] - padX) / scale,
-                            (decodedLandmarks[7] - padY) / scale
-                        ),
-                        new Point2D(
-                            (decodedLandmarks[8] - padX) / scale,
-                            (decodedLandmarks[9] - padY) / scale
+                    landmarks = Maybe<FaceLandmarks5>.From(
+                        new FaceLandmarks5(
+                            new Point2D(
+                                (decodedLandmarks[0] - padX) / scale,
+                                (decodedLandmarks[1] - padY) / scale
+                            ),
+                            new Point2D(
+                                (decodedLandmarks[2] - padX) / scale,
+                                (decodedLandmarks[3] - padY) / scale
+                            ),
+                            new Point2D(
+                                (decodedLandmarks[4] - padX) / scale,
+                                (decodedLandmarks[5] - padY) / scale
+                            ),
+                            new Point2D(
+                                (decodedLandmarks[6] - padX) / scale,
+                                (decodedLandmarks[7] - padY) / scale
+                            ),
+                            new Point2D(
+                                (decodedLandmarks[8] - padX) / scale,
+                                (decodedLandmarks[9] - padY) / scale
+                            )
                         )
-                    ));
+                    );
                 }
             }
 
@@ -361,11 +363,7 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
         // Convert to DetectedFace objects
         foreach (var (box, confidence, landmarks) in nmsResults.Take(KeepTopK))
         {
-            var detectedFace = new DetectedFace(
-                box,
-                confidence,
-                landmarks
-            );
+            var detectedFace = new DetectedFace(box, confidence, landmarks);
 
             detections.Add(detectedFace);
         }
@@ -501,7 +499,11 @@ public sealed class RetinaFaceDetector : IFaceDetector, IDisposable
     /// <summary>
     /// Applies Non-Max Suppression to reduce overlapping detections.
     /// </summary>
-    private List<(FaceBox box, float confidence, Maybe<FaceLandmarks5> landmarks)> ApplyNonMaxSuppression(
+    private List<(
+        FaceBox box,
+        float confidence,
+        Maybe<FaceLandmarks5> landmarks
+    )> ApplyNonMaxSuppression(
         List<(FaceBox box, float confidence, Maybe<FaceLandmarks5> landmarks)> detections,
         float threshold
     )

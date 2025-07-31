@@ -40,7 +40,7 @@ using FaceOFFx.Infrastructure.Services;
 byte[] imageData = File.ReadAllBytes("photo.jpg");
 var result = await FacialImageEncoder.ProcessAsync(imageData);
 
-File.WriteAllBytes("output.jp2", result.ImageData);
+File.WriteAllBytes("output.png", result.ImageData);
 Console.WriteLine($"Size: {result.Metadata.FileSize:N0} bytes");
 
 // TWIC processing (14KB maximum for card compatibility)
@@ -124,10 +124,10 @@ See the power of FaceOFFx with these real-world examples demonstrating our four 
 
 | Quality Preset            | Original                                                                                                                          | PIV Processed                                                                                                                          | ROI Visualization                                                                                                      |
 |---------------------------|-----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| **PIV High** (28.8KB)     | ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_420w.jpg) | ![Generic Guy PIV High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_piv_high.jp2) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi.jpg) |
-| **PIV Balanced** (17.3KB) | ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_420w.jpg)               | ![Bush PIV Balanced](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_piv_balanced.jp2)       | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi.jpg)               |
-| **PIV Minimum** (11.6KB)  | ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_420w.jpg)             | ![Trump PIV Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_piv_min.jp2)           | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi.jpg)             |
-| **Minimum** (14.4KB)      | ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_420w.jpg)         | ![Johnson Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_minimum.jp2)           | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi.jpg)         |
+| **PIV High** (28.8KB)     | ![Generic Guy Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/generic_guy_420w.jpg) | ![Generic Guy PIV High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/generic_guy_piv_high.png) | ![Generic Guy ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/generic_guy_roi.jpg) |
+| **PIV Balanced** (17.3KB) | ![Bush Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/bush_420w.jpg)               | ![Bush PIV Balanced](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/bush_piv_balanced.png)       | ![Bush ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/bush_roi.jpg)               |
+| **PIV Minimum** (11.6KB)  | ![Trump Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/trump_420w.jpg)             | ![Trump PIV Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/trump_piv_min.png)           | ![Trump ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/trump_roi.jpg)             |
+| **Minimum** (14.4KB)      | ![Johnson Original](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/original/johnson_420w.jpg)         | ![Johnson Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/johnson_minimum.png)           | ![Johnson ROI](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/roi/johnson_roi.jpg)         |
 
 ### Processing Results
 
@@ -147,7 +147,7 @@ See how JPEG 2000 compression quality affects the final image, from lowest to hi
 
 | **Minimum** (14.4KB)                                                                                                 | **PIV Minimum** (11.5KB)                                                                                             | **PIV Balanced** (17.3KB)                                                                                                      |
 |----------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| ![Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_minimum.jp2) | ![PIV Min](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_min.jp2) | ![PIV Balanced](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_balanced.jp2) |
+| ![Minimum](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_minimum.png) | ![PIV Min](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_min.png) | ![PIV Balanced](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_balanced.png) |
 | **Size**: 14,748 bytes                                                                                               | **Size**: 11,789 bytes                                                                                               | **Size**: 17,723 bytes                                                                                                         |
 | **Rate**: 0.35 bpp                                                                                                   | **Rate**: 0.36 bpp                                                                                                   | **Rate**: 0.55 bpp                                                                                                             |
 | Bare minimum quality                                                                                                 | PIV/TWIC compliant                                                                                                   | Standard PIV quality                                                                                                           |
@@ -156,7 +156,7 @@ See how JPEG 2000 compression quality affects the final image, from lowest to hi
 
 | **PIV High** (28.8KB)                                                                                                  | **PIV Very High** (48.6KB)                                                                                                      | **PIV Archival** (80.2KB)                                                                                              |
 |------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-| ![PIV High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_high.jp2) | ![PIV Very High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_veryhigh.jp2) | ![Archival](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_archival.jp2) |
+| ![PIV High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_high.png) | ![PIV Very High](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_piv_veryhigh.png) | ![Archival](https://raw.githubusercontent.com/mistial-dev/FaceOFFx/master/docs/samples/processed/starmer_archival.png) |
 | **Size**: 29,485 bytes                                                                                                 | **Size**: 49,732 bytes                                                                                                          | **Size**: 82,127 bytes                                                                                                 |
 | **Rate**: 0.96 bpp                                                                                                     | **Rate**: 1.70 bpp                                                                                                              | **Rate**: 4.00 bpp                                                                                                     |
 | Enhanced PIV quality                                                                                                   | High quality                                                                                                                    | Long-term preservation                                                                                                 |
@@ -215,7 +215,7 @@ var result = await PivProcessor.ProcessAsync(
 if (result.IsSuccess)
 {
     // Save the processed image
-    await File.WriteAllBytesAsync("output.jp2", result.Value.ImageData);
+    await File.WriteAllBytesAsync("output.png", result.Value.ImageData);
     Console.WriteLine($"Processing succeeded: {result.Value.ProcessingSummary}");
 }
 else
@@ -291,14 +291,14 @@ var fastOptions = PivProcessingOptions.Fast;
 
 ### File Size Tuning
 
-| Preset         | Target Size | Actual Size | Compression Rate | Use Case                                                           |
-|----------------|-------------|-------------|------------------|--------------------------------------------------------------------|
-| PIV Archival   | -           | ~82KB       | 4.00 bpp         | Long-term preservation and archival storage                        |
-| PIV Very High  | 50KB        | ~49.7KB     | 1.70 bpp         | Premium quality with excellent detail preservation                 |
-| PIV High       | 30KB        | ~29.4KB     | 0.96 bpp         | Enhanced quality for applications requiring superior detail        |
-| PIV Balanced   | 20KB        | ~17.7KB     | 0.55 bpp         | **Default** - Optimal quality/size balance for ID cards            |
-| PIV Minimum    | 12KB        | ~11.8KB     | 0.36 bpp         | Minimum acceptable quality, works for both PIV and TWIC (14KB max) |
-| Minimum        | -           | ~14.7KB     | 0.48 bpp         | Smallest possible file size                                        |
+| Preset        | Target Size | Actual Size | Compression Rate | Use Case                                                           |
+|---------------|-------------|-------------|------------------|--------------------------------------------------------------------|
+| PIV Archival  | -           | ~82KB       | 4.00 bpp         | Long-term preservation and archival storage                        |
+| PIV Very High | 50KB        | ~49.7KB     | 1.70 bpp         | Premium quality with excellent detail preservation                 |
+| PIV High      | 30KB        | ~29.4KB     | 0.96 bpp         | Enhanced quality for applications requiring superior detail        |
+| PIV Balanced  | 20KB        | ~17.7KB     | 0.55 bpp         | **Default** - Optimal quality/size balance for ID cards            |
+| PIV Minimum   | 12KB        | ~11.8KB     | 0.36 bpp         | Minimum acceptable quality, works for both PIV and TWIC (14KB max) |
+| Minimum       | -           | ~14.7KB     | 0.48 bpp         | Smallest possible file size                                        |
 
 ## CLI Usage
 
@@ -309,7 +309,7 @@ var fastOptions = PivProcessingOptions.Fast;
 faceoffx process photo.jpg
 
 # Specify output file
-faceoffx process photo.jpg --output id_photo.jp2
+faceoffx process photo.jpg --output id_photo.png
 
 # Generate ROI visualization
 faceoffx roi photo.jpg --show-piv-lines
@@ -339,7 +339,7 @@ faceoffx process photo.jpg --verbose --debug
 
 | Option                | Description                | Default     |
 |-----------------------|----------------------------|-------------|
-| `--output <PATH>`     | Output file path           | `input.jp2` |
+| `--output <PATH>`     | Output file path           | `input.png` |
 | `--rate <RATE>`       | Compression rate (0.6-1.0) | `0.7`       |
 | `--roi-level <LEVEL>` | ROI priority (0-3)         | `3`         |
 | `--no-roi`            | Disable ROI encoding       | ROI enabled |

@@ -5,7 +5,7 @@
 ### Major Breaking Changes & Code Quality Improvements
 
 This major release improves code quality by adopting functional programming patterns
-internally while providing a simplified public API. The release also corrects 
+internally while providing a simplified public API. The release also corrects
 terminology to reflect PIV-compatible (not PIV-compliant) image processing.
 
 ### Breaking Changes

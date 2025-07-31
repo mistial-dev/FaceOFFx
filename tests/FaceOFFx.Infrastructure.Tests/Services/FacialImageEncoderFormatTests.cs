@@ -13,7 +13,7 @@ namespace FaceOFFx.Infrastructure.Tests.Services;
 public class FacialImageEncoderFormatTests : IntegrationTestBase
 {
     private const string TestImagesPath = "/Users/mistial/Projects/FaceONNX/tests/sample_images";
-    
+
     /// <summary>
     /// Tests that JPEG format is processed correctly
     /// </summary>
@@ -22,15 +22,15 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var jpegPath = Path.Combine(TestImagesPath, "generic_guy.jpg");
         var imageData = await File.ReadAllBytesAsync(jpegPath);
-        
+
         var result = await FacialImageEncoder.ProcessAsync(imageData);
-        
+
         result.Should().NotBeNull();
         result.ImageData.Should().NotBeEmpty();
         result.Metadata.OutputDimensions.Width.Should().Be(420);
         result.Metadata.OutputDimensions.Height.Should().Be(560);
     }
-    
+
     /// <summary>
     /// Tests that PNG format is processed correctly
     /// </summary>
@@ -39,15 +39,15 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var pngPath = Path.Combine(TestImagesPath, "generic_guy.png");
         var imageData = await File.ReadAllBytesAsync(pngPath);
-        
+
         var result = await FacialImageEncoder.ProcessAsync(imageData);
-        
+
         result.Should().NotBeNull();
         result.ImageData.Should().NotBeEmpty();
         result.Metadata.OutputDimensions.Width.Should().Be(420);
         result.Metadata.OutputDimensions.Height.Should().Be(560);
     }
-    
+
     /// <summary>
     /// Tests that TIFF format is processed correctly
     /// </summary>
@@ -56,15 +56,15 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var tiffPath = Path.Combine(TestImagesPath, "generic_guy.tif");
         var imageData = await File.ReadAllBytesAsync(tiffPath);
-        
+
         var result = await FacialImageEncoder.ProcessAsync(imageData);
-        
+
         result.Should().NotBeNull();
         result.ImageData.Should().NotBeEmpty();
         result.Metadata.OutputDimensions.Width.Should().Be(420);
         result.Metadata.OutputDimensions.Height.Should().Be(560);
     }
-    
+
     /// <summary>
     /// Tests that JPEG 2000 format is NOT supported as input (ImageSharp limitation)
     /// </summary>
@@ -73,13 +73,13 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var jp2Path = Path.Combine(TestImagesPath, "generic_guy.jp2");
         var imageData = await File.ReadAllBytesAsync(jp2Path);
-        
+
         // ImageSharp doesn't support JP2 as input, only as output through our encoder
-        await AssertThrowsAsync<ArgumentException>(
-            () => FacialImageEncoder.ProcessAsync(imageData)
+        await AssertThrowsAsync<ArgumentException>(() =>
+            FacialImageEncoder.ProcessAsync(imageData)
         );
     }
-    
+
     /// <summary>
     /// Tests processing multiple formats in sequence
     /// </summary>
@@ -88,26 +88,28 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var formats = new[] { "jpg", "png", "tif" }; // JP2 not supported as input
         var results = new List<ProcessingResultDto>();
-        
+
         foreach (var format in formats)
         {
             var imagePath = Path.Combine(TestImagesPath, $"generic_guy.{format}");
             var imageData = await File.ReadAllBytesAsync(imagePath);
-            
+
             var result = await FacialImageEncoder.ProcessAsync(imageData);
             results.Add(result);
         }
-        
+
         results.Should().HaveCount(3);
-        results.Should().AllSatisfy(r =>
-        {
-            r.Should().NotBeNull();
-            r.ImageData.Should().NotBeEmpty();
-            r.Metadata.OutputDimensions.Width.Should().Be(420);
-            r.Metadata.OutputDimensions.Height.Should().Be(560);
-        });
+        results
+            .Should()
+            .AllSatisfy(r =>
+            {
+                r.Should().NotBeNull();
+                r.ImageData.Should().NotBeEmpty();
+                r.Metadata.OutputDimensions.Width.Should().Be(420);
+                r.Metadata.OutputDimensions.Height.Should().Be(560);
+            });
     }
-    
+
     /// <summary>
     /// Tests that Try pattern works with different formats
     /// </summary>
@@ -115,20 +117,20 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     public async Task TryProcessAsync_WithDifferentFormats_ReturnsSuccess()
     {
         var formats = new[] { "jpg", "png", "tif" }; // JP2 not supported as input
-        
+
         foreach (var format in formats)
         {
             var imagePath = Path.Combine(TestImagesPath, $"generic_guy.{format}");
             var imageData = await File.ReadAllBytesAsync(imagePath);
-            
+
             var (success, result, error) = await FacialImageEncoder.TryProcessAsync(imageData);
-            
+
             success.Should().BeTrue($"Format {format} should process successfully");
             result.Should().NotBeNull();
             error.Should().BeNull();
         }
     }
-    
+
     /// <summary>
     /// Tests that all formats produce consistent results
     /// </summary>
@@ -137,30 +139,32 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     {
         var formats = new[] { "jpg", "png", "tif" }; // JP2 not supported as input
         var results = new Dictionary<string, ProcessingResultDto>();
-        
+
         foreach (var format in formats)
         {
             var imagePath = Path.Combine(TestImagesPath, $"generic_guy.{format}");
             var imageData = await File.ReadAllBytesAsync(imagePath);
-            
+
             results[format] = await FacialImageEncoder.ProcessAsync(imageData);
         }
-        
+
         // All should have same output dimensions
         var dimensions = results.Values.Select(r => r.Metadata.OutputDimensions).ToList();
         dimensions.Should().AllBeEquivalentTo(dimensions.First());
-        
+
         // Face confidence should be similar across formats (within 5%)
         var confidences = results.Values.Select(r => r.Metadata.FaceConfidence).ToList();
         var avgConfidence = confidences.Average();
-        confidences.Should().AllSatisfy(c => Math.Abs(c - avgConfidence).Should().BeLessThan(0.05f));
-        
+        confidences
+            .Should()
+            .AllSatisfy(c => Math.Abs(c - avgConfidence).Should().BeLessThan(0.05f));
+
         // Rotation should be very similar (within 0.1 degrees)
         var rotations = results.Values.Select(r => r.Metadata.RotationApplied).ToList();
         var avgRotation = rotations.Average();
         rotations.Should().AllSatisfy(r => Math.Abs(r - avgRotation).Should().BeLessThan(0.1f));
     }
-    
+
     /// <summary>
     /// Tests error handling with corrupted image data
     /// </summary>
@@ -168,12 +172,12 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     public async Task ProcessAsync_WithCorruptedData_ThrowsInvalidOperationException()
     {
         var corruptedData = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 }; // Partial JPEG header
-        
-        await AssertThrowsAsync<ArgumentException>(
-            () => FacialImageEncoder.ProcessAsync(corruptedData)
+
+        await AssertThrowsAsync<ArgumentException>(() =>
+            FacialImageEncoder.ProcessAsync(corruptedData)
         );
     }
-    
+
     /// <summary>
     /// Tests that unsupported format throws appropriate exception
     /// </summary>
@@ -181,9 +185,9 @@ public class FacialImageEncoderFormatTests : IntegrationTestBase
     public async Task ProcessAsync_WithUnsupportedFormat_ThrowsInvalidOperationException()
     {
         var bmpHeader = new byte[] { 0x42, 0x4D, 0x00, 0x00, 0x00, 0x00 }; // BMP header (not supported by ImageSharp)
-        
-        await AssertThrowsAsync<ArgumentException>(
-            () => FacialImageEncoder.ProcessAsync(bmpHeader)
+
+        await AssertThrowsAsync<ArgumentException>(() =>
+            FacialImageEncoder.ProcessAsync(bmpHeader)
         );
     }
 }

@@ -23,7 +23,11 @@ public static class PivTransformCalculator
     /// The calculation uses arctangent to determine the angle between the eyes,
     /// then applies the specified rotation limit.
     /// </remarks>
-    public static float CalculateRotationFromEyes(Point2D leftEye, Point2D rightEye, float maxRotationDegrees = 5.0f)
+    public static float CalculateRotationFromEyes(
+        Point2D leftEye,
+        Point2D rightEye,
+        float maxRotationDegrees = 5.0f
+    )
     {
         var deltaY = rightEye.Y - leftEye.Y;
         var deltaX = rightEye.X - leftEye.X;

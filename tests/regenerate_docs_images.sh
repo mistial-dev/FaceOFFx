@@ -6,23 +6,23 @@ echo "Regenerating all JP2 images with ROI level 3..."
 
 # Function to process one person with all presets
 process_person() {
-    local person=$1
-    local source_img=$2
-    
-    echo "Processing $person..."
-    
-    # Process each preset
-    echo "  - Generating ${person}_minimum.jp2 with preset minimal"
-    dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_minimum.jp2" --preset minimal --quiet
-    
-    echo "  - Generating ${person}_piv_min.jp2 with preset piv-min"
-    dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_min.jp2" --preset piv-min --quiet
-    
-    echo "  - Generating ${person}_piv_balanced.jp2 with preset piv-balanced"
-    dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_balanced.jp2" --preset piv-balanced --quiet
-    
-    echo "  - Generating ${person}_piv_high.jp2 with preset piv-high"
-    dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_high.jp2" --preset piv-high --quiet
+	local person=$1
+	local source_img=$2
+
+	echo "Processing $person..."
+
+	# Process each preset
+	echo "  - Generating ${person}_minimum.jp2 with preset minimal"
+	dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_minimum.jp2" --preset minimal --quiet
+
+	echo "  - Generating ${person}_piv_min.jp2 with preset piv-min"
+	dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_min.jp2" --preset piv-min --quiet
+
+	echo "  - Generating ${person}_piv_balanced.jp2 with preset piv-balanced"
+	dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_balanced.jp2" --preset piv-balanced --quiet
+
+	echo "  - Generating ${person}_piv_high.jp2 with preset piv-high"
+	dotnet run --project src/FaceOFFx.Cli -- process "$source_img" --output "docs/samples/processed/${person}_piv_high.jp2" --preset piv-high --quiet
 }
 
 # Process each person

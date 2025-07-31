@@ -126,7 +126,14 @@ public class EncodingStrategyTests
         // Mock encoder to return sizes for different rates
         // Return oversized for higher rates and target-sized for 0.68f (from CompressionSteps)
         _mockEncoder
-            .EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, Arg.Is<float>(r => r > 0.68f), 3, true, false)
+            .EncodeWithRoi(
+                Arg.Any<Image<Rgba32>>(),
+                _testRoiSet,
+                Arg.Is<float>(r => r > 0.68f),
+                3,
+                true,
+                false
+            )
             .Returns(Result.Success(new byte[25000])); // Too big
         _mockEncoder
             .EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, 0.68f, 3, true, false)
@@ -163,7 +170,14 @@ public class EncodingStrategyTests
             .Returns(Result.Success(new byte[17000])); // Too big
         // Mock all other rates to return too big
         _mockEncoder
-            .EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, Arg.Is<float>(r => r > 0.55f), 3, true, false)
+            .EncodeWithRoi(
+                Arg.Any<Image<Rgba32>>(),
+                _testRoiSet,
+                Arg.Is<float>(r => r > 0.55f),
+                3,
+                true,
+                false
+            )
             .Returns(Result.Success(new byte[20000])); // Too big
 
         var strategy = new TargetSizeStrategy(targetSize);
@@ -223,7 +237,14 @@ public class EncodingStrategyTests
             .Returns(Result.Success(new byte[18000])); // Success under target
         // Mock lower rates to return smaller sizes
         _mockEncoder
-            .EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, Arg.Is<float>(r => r < 0.68f), 3, true, false)
+            .EncodeWithRoi(
+                Arg.Any<Image<Rgba32>>(),
+                _testRoiSet,
+                Arg.Is<float>(r => r < 0.68f),
+                3,
+                true,
+                false
+            )
             .Returns(Result.Success(new byte[15000]));
 
         var strategy = new TargetSizeStrategy(targetSize);
@@ -248,7 +269,9 @@ public class EncodingStrategyTests
         // 4. Sequence: 0.68 (upper), 0.55 (target), 0.46 (lower)
         var expectedRates = new[]
         {
-            0.68f, 0.55f, 0.46f  // Intelligent retry sequence
+            0.68f,
+            0.55f,
+            0.46f, // Intelligent retry sequence
         };
 
         // Mock encoder to always return too-large sizes so we test the steps
@@ -272,7 +295,9 @@ public class EncodingStrategyTests
         // Verify it tried the expected rates in order
         foreach (var rate in expectedRates)
         {
-            _mockEncoder.Received().EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, rate, 3, true, false);
+            _mockEncoder
+                .Received()
+                .EncodeWithRoi(Arg.Any<Image<Rgba32>>(), _testRoiSet, rate, 3, true, false);
         }
     }
 }

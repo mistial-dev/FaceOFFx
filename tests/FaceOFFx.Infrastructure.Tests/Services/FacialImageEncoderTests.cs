@@ -115,7 +115,10 @@ public class FacialImageEncoderTests : IntegrationTestBase
     public async Task ProcessWithRateAsync_WithCustomRate_UsesRate()
     {
         var compressionRate = 1.5f;
-        var result = await FacialImageEncoder.ProcessWithRateAsync(_validImageData, compressionRate);
+        var result = await FacialImageEncoder.ProcessWithRateAsync(
+            _validImageData,
+            compressionRate
+        );
 
         result.Should().NotBeNull();
         result.Metadata.CompressionRate.Should().Be(compressionRate);
@@ -150,7 +153,9 @@ public class FacialImageEncoderTests : IntegrationTestBase
     [Test]
     public async Task ProcessAsync_WithNullImageData_ThrowsArgumentException()
     {
-        await AssertThrowsAsync<ArgumentNullException>(() => FacialImageEncoder.ProcessAsync(null!));
+        await AssertThrowsAsync<ArgumentNullException>(() =>
+            FacialImageEncoder.ProcessAsync(null!)
+        );
     }
 
     /// <summary>
@@ -159,7 +164,10 @@ public class FacialImageEncoderTests : IntegrationTestBase
     [Test]
     public async Task ProcessAsync_ValidImage_ReturnsCompleteMetadata()
     {
-        var result = await FacialImageEncoder.ProcessAsync(_validImageData, ProcessingOptions.Archival);
+        var result = await FacialImageEncoder.ProcessAsync(
+            _validImageData,
+            ProcessingOptions.Archival
+        );
 
         result.Should().NotBeNull();
 
@@ -180,7 +188,10 @@ public class FacialImageEncoderTests : IntegrationTestBase
     [Test]
     public async Task ProcessAsync_DifferentPresets_ProduceDifferentSizes()
     {
-        var fastResult = await FacialImageEncoder.ProcessAsync(_validImageData, ProcessingOptions.Fast);
+        var fastResult = await FacialImageEncoder.ProcessAsync(
+            _validImageData,
+            ProcessingOptions.Fast
+        );
         var standardResult = await FacialImageEncoder.ProcessAsync(
             _validImageData,
             ProcessingOptions.PivBalanced
@@ -209,7 +220,9 @@ public class FacialImageEncoderTests : IntegrationTestBase
     {
         var action = () => FacialImageEncoder.ProcessToSizeAsync(_validImageData, 1000); // Very small
 
-        await action.Should().ThrowAsync<InvalidOperationException>()
+        await action
+            .Should()
+            .ThrowAsync<InvalidOperationException>()
             .WithMessage("*Cannot compress*");
     }
 
