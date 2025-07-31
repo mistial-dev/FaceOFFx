@@ -142,15 +142,15 @@ public sealed record ProcessingOptions
         };
 
     /// <summary>
-    /// Minimal file size: 0.5 bpp fixed rate for smallest storage footprint
+    /// Minimal file size: 10KB target for smallest storage footprint
     /// </summary>
     /// <value>
-    /// Minimal file size preset with aggressive compression (0.5 bpp).
-    /// Produces files around 15KB with reduced quality.
+    /// Minimal file size preset targeting exactly 10KB file size.
+    /// Uses aggressive compression with reduced quality.
     /// Suitable when storage space is the primary concern.
     /// </value>
     public static ProcessingOptions Minimal =>
-        new() { Strategy = EncodingStrategy.FixedRate(0.5f), RoiStartLevel = 3 };
+        new() { Strategy = EncodingStrategy.TargetSize(10000), RoiStartLevel = 3 };
 
     /// <summary>
     /// Fast processing: Fail-fast behavior with minimal retries
